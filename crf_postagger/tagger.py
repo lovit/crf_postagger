@@ -1,5 +1,5 @@
 import json
-from .transformer import potential_function as default_potential_function
+from .transformer import BaseFeatureTransformer
 from .trainer import Feature
 
 class TrainedCRFTagger:
@@ -8,7 +8,7 @@ class TrainedCRFTagger:
         potential_function=None, verbose=False):
 
         if potential_function is None:
-            potential_function = default_potential_function
+            potential_function = BaseFeatureTransformer()
 
         self.coef = coefficients
         self.potential_function = potential_function

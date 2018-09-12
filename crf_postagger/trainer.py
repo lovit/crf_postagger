@@ -5,7 +5,7 @@ except:
 
 import json
 from collections import namedtuple
-from .transformer import sentence_to_xy as default_sentence_to_xy
+from .transformer import BaseFeatureTransformer
 from .utils import get_process_memory
 from .utils import check_dirs
 
@@ -17,7 +17,7 @@ class Trainer:
         max_iter=300, verbose=True):
 
         if sentence_to_xy is None:
-            sentence_to_xy = default_sentence_to_xy
+            sentence_to_xy = BaseFeatureTransformer()
 
         self.sentence_to_xy = sentence_to_xy
         self.min_count = min_count
