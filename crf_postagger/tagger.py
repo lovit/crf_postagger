@@ -4,12 +4,17 @@ from .trainer import Feature
 
 class TrainedCRFTagger:
 
-    def __init__(self, coefficients=None, potential_function=None):
-        self.coef = coefficients
+    def __init__(self, model_path=None, coefficients=None,
+        potential_function=None, verbose=False):
 
         if potential_function is None:
             potential_function = default_potential_function
+
+        self.coef = coefficients
         self.potential_function = potential_function
+        self.verbose = verbose
+        if model_path:
+            self._load_from_json(model_path)
 
     def score(self, features):
         raise NotImplemented
