@@ -20,9 +20,9 @@ def potential_function(sentence):
     tags_ = tuple((bos, *tags, eos))
 
     n = len(sentence)
-    features = [to_feature(words_, tags_, i) for i in range(1, n+1)]
+    sentence_ = [to_feature(words_, tags_, i) for i in range(1, n+1)]
 
-    return features
+    return sentence_
 
 def to_feature(words_, tags_, i):
     features = [
