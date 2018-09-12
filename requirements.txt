@@ -1,0 +1,1 @@
+python-crfsuite>=0.9.5
