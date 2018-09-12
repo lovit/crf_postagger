@@ -12,12 +12,11 @@ def sentence_to_xy(sentence):
     tags_ = tuple((bos, *tags, eos))
 
     encoded_sentence = potential_function(words_, tags_)
-    return encoded_sentence, tags_
+    return encoded_sentence, tags
 
 def potential_function(words_, tags_):
     n = len(tags_) - 2 # except bos & eos
     sentence_ = [to_feature(words_, tags_, i) for i in range(1, n+1)]
-
     return sentence_
 
 def to_feature(words_, tags_, i):
