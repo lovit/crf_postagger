@@ -84,8 +84,9 @@ class Trainer:
         ]
 
         self._train_pycrfsuite(sentences)
+        self._parse_coefficients()
 
-    def _train_pycrfsuite(self, sentences):
+    def _train_pycrfsuite(self, sentences, model_path='_pycrfsuite_model'):
 
         def print_status(i):
             info = 'from {} sents, mem = {:f} Gb'.format(
@@ -119,8 +120,25 @@ class Trainer:
             'c1':max(0, self.l1_cost),
             'c2':max(0, self.l2_cost)
         }
-        model_path = '_trained_crf'
 
         # do train
         trainer.set_params(params)
         trainer.train(model_path)
+
+    def _parse_coefficients(self, model_path='_pycrfsuite_model'):
+
+        if self.verbose:
+            print('[CRF tagger] parse trained coefficients', end='')
+
+        # load pycrfsuite trained model
+        tagger = pycrfsuite.Tagger()
+        tagger.open(model_path)
+
+        # state feature coeffitient
+        debugger = tagger.info()
+        self.state_features = debugger.state_features
+        # transition coefficient
+        self.transition = debugger.transitions
+
+        if self.verbose:
+            print(' done')
