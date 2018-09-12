@@ -1,3 +1,9 @@
+import os
+import psutil
+
+installpath = os.path.sep.join(
+    os.path.dirname(os.path.realpath(__file__)).split(os.path.sep)[:-1])
+
 class Corpus:
     def __init__(self, path, num_sent=-1):
         self.path = path
@@ -9,3 +15,14 @@ class Corpus:
                     break
                 wordpos = [token.rsplit('/', 1) for token in sent.split()]
                 yield wordpos
+
+def check_dirs(path):
+    dirname = os.path.dirname(path)
+    if dirname and dirname != '.' and not os.path.exists(dirname):
+        os.makedirs(dirname)
+
+def get_process_memory():
+    """It returns the memory usage of current process"""
+
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / (1024 ** 3)
