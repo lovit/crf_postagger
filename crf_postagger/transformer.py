@@ -28,7 +28,7 @@ def to_feature(words_, tags_, i):
     features = [
         'x[0]=%s' % words_[i],
         'x[0]=%s, y[-1]=%s' % (words_[i], tags_[i-1]),
-        'x[-1:0]=%s-%s' % (words_[i-1], words[i]),
+        'x[-1:0]=%s-%s' % (words_[i-1], words_[i]),
         'x[-1:0]=%s-%s, y[-1]=%s' % (words_[i-1], words_[i], tags_[i-1]),
         'x[-1,1]=%s-%s' % (words_[i-1], words_[i+1]),
         'x[-1,1]=%s-%s, y[-1]=%s' % (words_[i-1], words_[i+1], tags_[i-1])
