@@ -11,13 +11,14 @@ Feature = namedtuple('Feature', 'idx count')
 class Trainer:
     def __init__(self, potential_function, min_count=10,
         l2_cost=1.0, l1_cost=1.0, scan_batch_size=200000,
-        verbose=True):
+        max_iter=300, verbose=True):
 
         self.potential_function = potential_function
         self.min_count = min_count
         self.l2_cost = l2_cost
         self.l1_cost = l1_cost
         self.scan_batch_size = scan_batch_size
+        self.max_iter = max_iter
         self.verbose = verbose
 
     def scan_features(self, sentences, potential_function,
