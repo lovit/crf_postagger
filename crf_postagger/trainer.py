@@ -83,4 +83,44 @@ class Trainer:
                 self._features, key=lambda x:self._features[x].idx)
         ]
 
-        return None
+        self._train_pycrfsuite(sentences)
+
+    def _train_pycrfsuite(self, sentences):
+
+        def print_status(i):
+            info = 'from {} sents, mem = {:f} Gb'.format(
+                i, get_process_memory())
+            print('\r[CRF tagger] appending features {}'.format(info), end='')
+
+        trainer = pycrfsuite.Trainer(verbose=self.verbose)
+
+        for i, sentence in enumerate(sentences):
+
+            if self.verbose:
+                print_status(i)
+
+            # transform sentence to features
+            x = self.potential_function(sentence)
+            y = [tag for _, tag in sentence]
+
+            # use only conformed feature
+            x = [[xij for xij in xi if xij in self._features] for xi in x]
+
+            trainer.append(x, y)
+
+        if self.verbose:
+            print_status(i)
+            print(' done.\n[CRF tagger] begin training')
+
+        # set pycrfsuite parameters
+        params = {
+            'feature.minfreq':max(0,self.min_count),
+            'max_iterations':max(1, self.max_iter),
+            'c1':max(0, self.l1_cost),
+            'c2':max(0, self.l2_cost)
+        }
+        model_path = '_trained_crf'
+
+        # do train
+        trainer.set_params(params)
+        trainer.train(model_path)
