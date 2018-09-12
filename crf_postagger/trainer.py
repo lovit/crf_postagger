@@ -96,7 +96,7 @@ class Trainer:
 
         for i, sentence in enumerate(sentences):
 
-            if self.verbose:
+            if self.verbose and i % 2000 == 0:
                 print_status(i)
 
             # transform sentence to features
