@@ -3,13 +3,15 @@ try:
 except:
     print('Failed to import python-crfsuite')
 
+import json
 from collections import namedtuple
 from .utils import get_process_memory
+from .utils import check_dirs
 
 Feature = namedtuple('Feature', 'idx count')
 
 class Trainer:
-    def __init__(self, potential_function, min_count=10,
+    def __init__(self, potential_function, min_count=3,
         l2_cost=1.0, l1_cost=1.0, scan_batch_size=200000,
         max_iter=300, verbose=True):
 
@@ -62,7 +64,7 @@ class Trainer:
 
         return counter
 
-    def train(self, sentences):
+    def train(self, sentences, model_path=None):
 
         features = self.scan_features(
             sentences, self.potential_function,
@@ -85,6 +87,9 @@ class Trainer:
 
         self._train_pycrfsuite(sentences)
         self._parse_coefficients()
+
+        if model_path:
+            self._save_as_json(model_path)
 
     def _train_pycrfsuite(self, sentences, model_path='_pycrfsuite_model'):
 
@@ -138,7 +143,32 @@ class Trainer:
         debugger = tagger.info()
         self.state_features = debugger.state_features
         # transition coefficient
-        self.transition = debugger.transitions
+        self.transitions = debugger.transitions
 
         if self.verbose:
             print(' done')
+
+    def _save_as_json(self, json_path):
+        # concatenate key that formed as tuple of str
+        state_features_json = {
+            ' -> '.join(state_feature):coef
+            for state_feature, coef in self.state_features.items()
+        }
+
+        # concatenate key that formed as tuple of str
+        transitions_json = {
+            ' -> '.join(transition):coef
+            for transition, coef in self.transitions.items()
+        }
+
+        # re-group parameters
+        params = {
+            'state_features': state_features_json,
+            'transitions': transitions_json,
+            'idx2feature': self._idx2feature,
+            'features': self._features
+        }
+
+        # save
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(params, f, ensure_ascii=False, indent=2)
