@@ -5,17 +5,21 @@ except:
 
 import json
 from collections import namedtuple
+from .transformer import sentence_to_xy as default_sentence_to_xy
 from .utils import get_process_memory
 from .utils import check_dirs
 
 Feature = namedtuple('Feature', 'idx count')
 
 class Trainer:
-    def __init__(self, potential_function, min_count=3,
+    def __init__(self, corpus=None, sentence_to_xy=None, min_count=3,
         l2_cost=1.0, l1_cost=1.0, scan_batch_size=200000,
         max_iter=300, verbose=True):
 
-        self.potential_function = potential_function
+        if sentence_to_xy is None:
+            sentence_to_xy = default_sentence_to_xy
+
+        self.sentence_to_xy = sentence_to_xy
         self.min_count = min_count
         self.l2_cost = l2_cost
         self.l1_cost = l1_cost
@@ -23,7 +27,10 @@ class Trainer:
         self.max_iter = max_iter
         self.verbose = verbose
 
-    def scan_features(self, sentences, potential_function,
+        if corpus is not None:
+            self.train(corpus)
+
+    def scan_features(self, sentences, sentence_to_xy,
         min_count=2, scan_batch_size=1000000):
 
         def trim(counter, min_count):
@@ -46,7 +53,7 @@ class Trainer:
             if (i % scan_batch_size == 0):
                 counter = trim(counter, min_count)
             # transform sentence to features
-            sentence_ = potential_function(sentence)
+            sentence_, _ = sentence_to_xy(sentence)
             # count
             for features in sentence_:
                 for feature in features:
@@ -67,7 +74,7 @@ class Trainer:
     def train(self, sentences, model_path=None):
 
         features = self.scan_features(
-            sentences, self.potential_function,
+            sentences, self.sentence_to_xy,
             self.min_count, self.scan_batch_size)
 
         # feature encoder
@@ -106,8 +113,7 @@ class Trainer:
                 print_status(i)
 
             # transform sentence to features
-            x = self.potential_function(sentence)
-            y = [tag for _, tag in sentence]
+            x, y = self.sentence_to_xy(sentence)
 
             # use only conformed feature
             x = [[xij for xij in xi if xij in self._features] for xi in x]

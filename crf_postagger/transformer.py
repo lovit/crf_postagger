@@ -1,7 +1,7 @@
 bos = 'BOS'
 eos = 'EOS'
 
-def potential_function(sentence):
+def sentence_to_xy(sentence):
     """Feature transformer
     
     :param list_of_tuple pos: a sentence [(word, tag), (word, tag), ...]
@@ -11,7 +11,11 @@ def potential_function(sentence):
     words_ = tuple((bos, *words, eos))
     tags_ = tuple((bos, *tags, eos))
 
-    n = len(sentence)
+    encoded_sentence = potential_function(words_, tags_)
+    return encoded_sentence, tags_
+
+def potential_function(words_, tags_):
+    n = len(tags_) - 2 # except bos & eos
     sentence_ = [to_feature(words_, tags_, i) for i in range(1, n+1)]
 
     return sentence_
