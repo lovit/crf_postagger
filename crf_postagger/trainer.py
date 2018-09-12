@@ -63,6 +63,3 @@ class Trainer:
         features = self.scan_features(sentences)
 
         raise NotImplemented
-
-def sent_to_xy(sentence, potential_function):
-    raise NotImplemented
