@@ -26,22 +26,11 @@ def potential_function(sentence):
 
 def to_feature(words_, tags_, i):
     features = [
-        # word[i]
-        (feature_names[0], words_[i]),
-
-        # word[i] & tag[i-1]
-        (feature_names[1], words_[i], tags_[i-1]),
-
-        # word[i-1:i]
-        (feature_names[2], *words_[i-1:i+1]),
-
-        # words[i-1:0] & tag[i-1]
-        (feature_names[3], *words_[i-1:i+1], tags_[i-1]),
-
-        # words[i-1,i+1]
-        (feature_names[4], words_[i-1], words_[i+1]),
-
-        # words[i-1,i+1] & tag[i-1]
-        (feature_names[5], words_[i-1], words_[i+1], tags_[i-1])
+        'x[0]=%s' % words_[i],
+        'x[0]=%s, y[-1]=%s' % (words_[i], tags_[i-1]),
+        'x[-1:0]=%s-%s' % (words_[i-1], words[i]),
+        'x[-1:0]=%s-%s, y[-1]=%s' % (words_[i-1], words_[i], tags_[i-1]),
+        'x[-1,1]=%s-%s' % (words_[i-1], words_[i+1]),
+        'x[-1,1]=%s-%s, y[-1]=%s' % (words_[i-1], words_[i+1], tags_[i-1])
     ]
     return features
