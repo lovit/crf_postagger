@@ -3,7 +3,10 @@ try:
 except:
     print('Failed to import python-crfsuite')
 
+from collections import namedtuple
 from .utils import get_process_memory
+
+Feature = namedtuple('Feature', 'idx count')
 
 class Trainer:
     def __init__(self, potential_function, min_count=10,
@@ -60,6 +63,23 @@ class Trainer:
 
     def train(self, sentences):
 
-        features = self.scan_features(sentences)
+        features = self.scan_features(
+            sentences, self.potential_function,
+            self.min_count, self.scan_batch_size)
 
-        raise NotImplemented
+        # feature encoder
+        self._features = {
+            # wrapping feature idx and its count
+            feature:Feature(idx, count) for idx, (feature, count) in
+            # sort features by their count in decreasing order
+            enumerate(sorted(features.items(), key=lambda x:-x[1]
+            ))
+        }
+
+        # feature id decoder
+        self._idx2feature = [
+            feature for feature in sorted(
+                self._features, key=lambda x:self._features[x].idx)
+        ]
+
+        return None
