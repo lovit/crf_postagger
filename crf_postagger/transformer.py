@@ -7,19 +7,6 @@ class AbstractFeatureTransformer:
         return self.sentence_to_xy(sentence)
 
     def sentence_to_xy(self, sentence):
-        raise NotImplemented
-
-    def potential_function(self, sentence):
-        raise NotImplemented
-
-    def to_feature(self, sentence):
-        raise NotImplemented
-
-class BaseFeatureTransformer(AbstractFeatureTransformer):
-    def __init__(self):
-        super().__init__()
-
-    def sentence_to_xy(self, sentence):
         """Feature transformer
 
         :param list_of_tuple pos: a sentence [(word, tag), (word, tag), ...]
@@ -36,6 +23,13 @@ class BaseFeatureTransformer(AbstractFeatureTransformer):
         n = len(tags_) - 2 # except bos & eos
         sentence_ = [self.to_feature(words_, tags_, i) for i in range(1, n+1)]
         return sentence_
+
+    def to_feature(self, sentence):
+        raise NotImplemented
+
+class BaseFeatureTransformer(AbstractFeatureTransformer):
+    def __init__(self):
+        super().__init__()
 
     def to_feature(self, words_, tags_, i):
         features = [
