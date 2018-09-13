@@ -1,0 +1,3 @@
+# Ignore trained model
+*.json
+_pycrfsuite*
