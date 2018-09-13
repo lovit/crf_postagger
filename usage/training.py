@@ -1,8 +1,10 @@
+import argparse
 import sys
 sys.path.append('../')
 
 import crf_postagger
 from crf_postagger import Corpus
+from crf_postagger import Trainer
 from crf_postagger import BaseFeatureTransformer
 from crf_postagger import HMMStyleFeatureTransformer
 
@@ -29,13 +31,12 @@ def main():
     else:
         sentence_to_xy = BaseFeatureTransformer()
 
-    sentence_to_xy
     trainer = Trainer(
         Corpus(corpus_path, num_sent=corpus_length),
-        sentence_to_xy = sentence_to_xy
+        sentence_to_xy = sentence_to_xy,
         max_iter = max_iter,
         l1_cost = 0,
-        verbose = verbosd
+        verbose = verbose
     )
     trainer._save_as_json(model_path)
 
