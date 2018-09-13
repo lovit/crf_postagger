@@ -16,19 +16,28 @@ class TrainedCRFTagger:
         if model_path:
             self._load_from_json(model_path)
 
-    def score(self, sentence):
+    def score(self, sentence, debug=False):
 
         # feature transform
         sentence_, tags = self.feature_transformer(sentence)
+        score = 0
 
         # transition weight
-        transitions = [(s0, s1) for s0, s1 in zip(tags, tags[1:])]
-        score = sum((self.transitions.get(trans, 0) for trans in transitions))
+        for s0, s1 in zip(tags, tags[1:]):
+            transition = (s0, s1)
+            coef = self.transitions.get(transition, 0)
+            if debug:
+                print('{} = {:f}, score = {:f}'.format(transition, coef, score))
+            score += coef
 
         # state feature weight
         for features, tag in zip(sentence_, tags):
             for feature in features:
-                score += self.state_features.get((feature, tag), 0)
+                if debug:
+                    print('{} -> {} = {:f}, score = {:f}'.format(
+                        feature, tag, coef, score))
+                coef = self.state_features.get((feature, tag), 0)
+                score += coef
 
         return score
 
