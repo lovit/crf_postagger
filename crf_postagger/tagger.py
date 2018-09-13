@@ -12,7 +12,6 @@ class TrainedCRFTagger:
         if verbose:
             print('use {}'.format(feature_transformer.__class__))
 
-        self.coef = coefficients
         self.feature_transformer = feature_transformer
         self.verbose = verbose
         if model_path:
@@ -51,13 +50,13 @@ class TrainedCRFTagger:
             model = json.load(f)
 
         # parse transition
-        self.transitions = {
+        self._transitions = {
             tuple(trans.split(marker)): coef
             for trans, coef in model['transitions'].items()
         }
 
         # parse state features
-        self.state_features = {
+        self._state_features = {
             tuple(feature.split(marker)): coef
             for feature, coef in model['state_features'].items()
         }
