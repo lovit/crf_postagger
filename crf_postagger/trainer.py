@@ -40,7 +40,7 @@ class Trainer:
             counter = {
                 feature:count for feature, count in counter.items()
                 # memorize all words no matter how the word occured.
-                if (count >= min_count) or (feature[0] == 'x[0]')
+                if (count >= min_count) or (feature[:4] == 'x[0]' and not ', ' in feature)
             }
             return counter
 
