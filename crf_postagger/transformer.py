@@ -41,3 +41,13 @@ class BaseFeatureTransformer(AbstractFeatureTransformer):
             'x[-1,1]=%s-%s, y[-1]=%s' % (words_[i-1], words_[i+1], tags_[i-1])
         ]
         return features
+
+class HMMStyleFeatureTransformer(AbstractFeatureTransformer):
+    def __init__(self):
+        super().__init__()
+
+    def to_feature(self, words_, tags_, i):
+        features = [
+            'x[0]=%s' % words_[i],
+        ]
+        return features

@@ -9,6 +9,8 @@ class TrainedCRFTagger:
 
         if feature_transformer is None:
             feature_transformer = BaseFeatureTransformer()
+        if verbose:
+            print('use {}'.format(feature_transformer.__class__))
 
         self.coef = coefficients
         self.feature_transformer = feature_transformer

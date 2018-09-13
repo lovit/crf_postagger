@@ -19,6 +19,9 @@ class Trainer:
         if sentence_to_xy is None:
             sentence_to_xy = BaseFeatureTransformer()
 
+        if verbose:
+            print('use {}'.format(sentence_to_xy.__class__))
+
         self.sentence_to_xy = sentence_to_xy
         self.min_count = min_count
         self.l2_cost = l2_cost
