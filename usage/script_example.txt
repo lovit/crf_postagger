@@ -1,1 +1,1 @@
-python training.py --corpus_path ../data/sejong_simpletag.txt --corpus_length -1 --feature_type trigram --max_iter 3 --model_path ../models/trigram_sejong_simple.json --verbose
+python training.py --corpus_path ../data/sejong_simpletag.txt --corpus_length -1 --feature_type trigram --max_iter 30 --model_path ../models/trigram_sejong_simple.json --verbose
