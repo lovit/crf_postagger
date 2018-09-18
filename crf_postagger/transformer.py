@@ -42,6 +42,22 @@ class BaseFeatureTransformer(AbstractFeatureTransformer):
         ]
         return features
 
+class TrigramFeatureTransformer(AbstractFeatureTransformer):
+    def __init__(self):
+        super().__init__()
+
+    def to_feature(self, words_, tags_, i):
+        features = [
+            'x[0]=%s' % words_[i],
+            'x[0]=%s, y[-1]=%s' % (words_[i], tags_[i-1]),
+            'x[-1:0]=%s-%s' % (words_[i-1], words_[i]),
+            'x[0:1]=%s-%s' % (words_[i], words_[i+1]),
+            'x[0:1]=%s-%s, y[1]=%s' % (words_[i], words_[i+1], tags_[i+1]),
+            'x[-1,1]=%s-%s' % (words_[i-1], words_[i+1]),
+            'x[-1:1]=%s-%s-%s' % (words_[i-1], words_[i], words_[i+1])
+        ]
+        return features
+
 class HMMStyleFeatureTransformer(AbstractFeatureTransformer):
     def __init__(self):
         super().__init__()
