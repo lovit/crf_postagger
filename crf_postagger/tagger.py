@@ -1,4 +1,3 @@
-import json
 from .transformer import *
 
 class TrainedCRFTagger:
@@ -43,4 +42,5 @@ class TrainedCRFTagger:
         return score
 
     def tag(self, sentence):
-        raise NotImplemented
+        edges, bos, eos = self.node_generator.generate(sentence)
+        return edges
