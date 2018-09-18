@@ -1,6 +1,6 @@
 from .common import bos, eos, unk
 from .lemmatizer import lemma_candidate
-from .node import BaseNodeGenerator
+from .node import HMMNodeGenerator
 from .tagger import TrainedCRFTagger
 from .trainer import Trainer
 from .transformer import BaseFeatureTransformer
