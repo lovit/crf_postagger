@@ -11,6 +11,8 @@ build/
 # Experiments
 tmp/
 data/
+# temporally
+models/
 
 # Jupyter notebook
 .ipynb_checkpoints/
