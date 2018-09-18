@@ -8,7 +8,7 @@ from .lemmatizer import lemma_candidate
 from .trainer import Feature
 
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
-Node = namedtuple('Node', 'words first_word last_word first_tag last_tag begin end node_score')
+Node = namedtuple('Node', 'pos first_word last_word first_tag last_tag begin end node_score')
 
 class HMMNodeGenerator:
     def __init__(self, model_path=None, pos2words=None,
