@@ -73,7 +73,16 @@ class TrainedCRFTagger:
         return [(from_, to_, get_score(from_, to_)) for from_, to_ in edges]
 
     def _postprocessing(self, path):
-        return path[1:-1]
+        poses = []
+        for node in path[1:-1]:
+            poses_ = node.pos.split(' + ')
+            if len(poses_) == 1:
+                poses.append((node.first_word, node.first_tag))
+            else:
+                for pos in poses_:
+                    word, tag = pos.rsplit('/', 1)
+                    poses.append((word, tag))
+        return poses
 
     def add_user_dictionary(self, tag, word_score):
         if not (tag in self.node_generator.pos2words):
