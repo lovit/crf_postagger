@@ -3,7 +3,7 @@ from .lemmatizer import lemma_candidate
 
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
 
-class AbstractNodeGenerator:
+class BaseNodeGenerator:
     def __init__(self, pos2words, state_features, max_word_len=0):
         self.pos2words = pos2words
         self.state_features = state_features
