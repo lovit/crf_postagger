@@ -1,6 +1,6 @@
 from .transformer import *
 
-class TrainedCRFTagger:
+class HMMStyleTagger:
 
     def __init__(self, node_generator,
         feature_transformer=None, verbose=False):
