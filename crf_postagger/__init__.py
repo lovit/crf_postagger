@@ -1,3 +1,4 @@
+from .lemmatizer import lemma_candidate
 from .tagger import TrainedCRFTagger
 from .trainer import Trainer
 from .transformer import BaseFeatureTransformer

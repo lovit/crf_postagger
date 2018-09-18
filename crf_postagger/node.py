@@ -1,4 +1,6 @@
 import re
+from .lemmatizer import lemma_candidate
+
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
 
 class AbstractNodeGenerator:
@@ -41,3 +43,19 @@ class AbstractNodeGenerator:
 
     def _get_pos(self, word):
         return [tag for tag, words in self.pos2words.items() if word in words]
+
+    def _lemmatize(self, word, i):
+        l = word[:i]
+        r = word[i:]
+        lemmas = []
+        len_word = len(word)
+        for l_, r_ in lemma_candidate(l, r):
+            word_ = l_ + ' + ' + r_
+            if (l_ in self.pos2words['Verb']) and (r_ in self.pos2words['Eomi']):
+                lemmas.append((word_, 'Verb', 'Eomi'))
+            if (l_ in self.pos2words['Adjective']) and (r_ in self.pos2words['Eomi']):
+                lemmas.append((word_, 'Adjective', 'Eomi'))
+            if len_word > 1 and not (word in self.pos2words['Noun']):
+                if (l_ in self.pos2words['Noun']) and (r_ in self.pos2words['Josa']):
+                    lemmas.append((word_, 'Noun', 'Josa'))
+        return lemmas
