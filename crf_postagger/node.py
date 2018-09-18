@@ -152,22 +152,22 @@ class HMMNodeGenerator:
             model = json.load(f)
 
         # parse transition
-        self._transitions = {
+        self.transitions = {
             tuple(trans.split(marker)): coef
             for trans, coef in model['transitions'].items()
         }
 
         # parse state features
-        self._state_features = {
+        self.state_features = {
             tuple(feature.split(marker)): coef
             for feature, coef in model['state_features'].items()
         }
 
         # get idx2features
-        self._idx2feature = model['idx2feature']
+        self.idx2feature = model['idx2feature']
 
         # parse feature information map
-        self._features = {
+        self.features = {
             feature: Feature(idx, count)
             for feature, (idx, count) in model['features'].items()
         }
@@ -176,7 +176,7 @@ class HMMNodeGenerator:
 
     def _construct_dictionary_from_state_features(self):
         self.pos2words = defaultdict(lambda: {})
-        for (feature, tag), coef in self._state_features.items():
+        for (feature, tag), coef in self.state_features.items():
             if (feature[:4] == 'x[0]') and not (', ' in feature) and coef > 0:
                 word = feature[5:]
                 self.pos2words[tag][word] = coef
