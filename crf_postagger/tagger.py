@@ -16,6 +16,8 @@ class TrainedCRFTagger:
         self.node_generator = node_generator
         self.verbose = verbose
 
+        self._a_syllable_penalty = -7
+
     def score(self, wordpos_sentence, debug=False):
 
         # feature transform
@@ -42,8 +44,36 @@ class TrainedCRFTagger:
         return score
 
     def tag(self, sentence):
-        edges, bos, eos = self.node_generator.generate(sentence)
-        return edges
+        # generate nodes and edges
+        edges, bos_node, eos_node = self.node_generator.generate(sentence)
+        nodes = {node for edge in edges for node in edge[:2]}
+
+        # add transition score
+        edges = self._add_weight(edges)
+
+        # find optimal path
+        path, cost = ford_list(edges, nodes, bos_node, eos_node)
+
+        # post-processing
+        path = self._postprocessing(path)
+
+        return path
+
+    def _add_weight(self, edges):
+        def get_transition(f, t):
+            return self.node_generator.transitions.get((f, t), 0)
+
+        def get_score(from_, to_):
+            score = get_transition(from_.last_tag, to_.first_tag) + to_.node_score
+            if len(to_.first_word) == 1:
+                score += self._a_syllable_penalty
+            if not (to_.first_word == to_.last_tag):
+                score += get_transition(to_.first_tag, to_.last_tag)
+            return score
+        return [(from_, to_, get_score(from_, to_)) for from_, to_ in edges]
+
+    def _postprocessing(self, path):
+        return path[1:-1]
 
     def add_user_dictionary(self, tag, word_score):
         if not (tag in self.node_generator.pos2words):
