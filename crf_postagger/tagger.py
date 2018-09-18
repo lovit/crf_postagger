@@ -1,34 +1,32 @@
 import json
-from .transformer import BaseFeatureTransformer
-from .trainer import Feature
+from .transformer import *
 
 class TrainedCRFTagger:
 
-    def __init__(self, model_path=None, pos2words=None,
+    def __init__(self, node_generator,
         feature_transformer=None, verbose=False):
 
         if feature_transformer is None:
             feature_transformer = BaseFeatureTransformer()
+        if node_generator is None:
+            node_generator = HMMNodeGenerator()
         if verbose:
             print('use {}'.format(feature_transformer.__class__))
 
         self.feature_transformer = feature_transformer
+        self.node_generator = node_generator
         self.verbose = verbose
-        self._word_features = pos2words
 
-        if model_path:
-            self._load_from_json(model_path)
-
-    def score(self, sentence, debug=False):
+    def score(self, wordpos_sentence, debug=False):
 
         # feature transform
-        sentence_, tags = self.feature_transformer(sentence)
+        sentence_, tags = self.feature_transformer(wordpos_sentence)
         score = 0
 
         # transition weight
         for s0, s1 in zip(tags, tags[1:]):
             transition = (s0, s1)
-            coef = self.transitions.get(transition, 0)
+            coef = self.node_generator.transitions.get(transition, 0)
             if debug:
                 print('{} = {:f}, score = {:f}'.format(transition, coef, score))
             score += coef
@@ -39,48 +37,10 @@ class TrainedCRFTagger:
                 if debug:
                     print('{} -> {} = {:f}, score = {:f}'.format(
                         feature, tag, coef, score))
-                coef = self.state_features.get((feature, tag), 0)
+                coef = self.node_generator.state_features.get((feature, tag), 0)
                 score += coef
 
         return score
 
     def tag(self, sentence):
         raise NotImplemented
-
-    def _load_from_json(self, json_path, marker = ' -> '):
-        with open(json_path, encoding='utf-8') as f:
-            model = json.load(f)
-
-        # parse transition
-        self._transitions = {
-            tuple(trans.split(marker)): coef
-            for trans, coef in model['transitions'].items()
-        }
-
-        # parse state features
-        self._state_features = {
-            tuple(feature.split(marker)): coef
-            for feature, coef in model['state_features'].items()
-        }
-
-        # get idx2features
-        self._idx2feature = model['idx2feature']
-
-        # parse feature information map
-        self._features = {
-            feature: Feature(idx, count)
-            for feature, (idx, count) in model['features'].items()
-        }
-
-        del model
-
-        if not self._word_features:
-            self._construct_dictionary_from_state_features()
-
-    def _construct_dictionary_from_state_features(self):
-        self._word_features = defaultdict(lambda: {})
-        for (feature, tag), coef in self._state_features.items():
-            if (feature[:4] == 'x[0]') and not (', ' in feature) and coef > 0:
-                word = feature[5:]
-                self._word_features[tag][word] = coef
-        self._word_features = dict(self._word_features)
