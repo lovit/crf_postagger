@@ -1,4 +1,5 @@
 from .lemmatizer import lemma_candidate
+from .node import AbstractNodeGenerator
 from .tagger import TrainedCRFTagger
 from .trainer import Trainer
 from .transformer import BaseFeatureTransformer
