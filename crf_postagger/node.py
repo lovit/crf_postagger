@@ -7,7 +7,7 @@ doublespace_pattern = re.compile(u'\s+', re.UNICODE)
 Node = namedtuple('Node', 'words first_word last_word first_tag last_tag begin end node_score')
 
 class HMMNodeGenerator:
-    def __init__(self, pos2words, state_features, max_word_len=0):
+    def __init__(self, pos2words=None, state_features=None, max_word_len=0):
         self.pos2words = pos2words
         self.state_features = state_features
         self.max_word_len = max_word_len
