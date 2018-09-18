@@ -1,3 +1,5 @@
+from pprint import pprint
+
 bos = 'BOS'
 eos = 'EOS'
 
@@ -26,6 +28,19 @@ class AbstractFeatureTransformer:
 
     def to_feature(self, sentence):
         raise NotImplemented
+
+    def show_example(self):
+        sentence = [
+            ('이것', 'Noun'),
+            ('은', 'Josa'),
+            ('예문', 'Noun'),
+            ('이', 'Adjective'),
+            ('ㅂ니다', 'Eomi')
+        ]
+        words, tags = zip(*sentence)
+        features, tags_ = self.sentence_to_xy(sentence)
+        print('CRF feature example with 5 words\words = {}\ntags={}\nfeatures'.format(words, tags))
+        pprint(features)
 
 class BaseFeatureTransformer(AbstractFeatureTransformer):
     def __init__(self):
