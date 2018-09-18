@@ -1,6 +1,6 @@
 from .common import bos, eos, unk
 from .lemmatizer import lemma_candidate
-from .node import HMMNodeGenerator
+from .params import HMMStyleParameter
 from .path import ford_list
 from .tagger import HMMStyleTagger
 from .trainer import Trainer
