@@ -55,9 +55,6 @@ class HMMNodeGenerator:
         # add link between adjacent nodes
         edges = self._link_adjacent_nodes(sent, chars, n_char)
 
-        for edge in edges:
-            print(edge[0])
-            print(edge[1], end='\n\n')
         # add link from unk node
         edges = self._link_from_unk_nodes(edges, sent)
 
