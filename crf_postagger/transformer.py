@@ -1,7 +1,5 @@
 from pprint import pprint
-
-bos = 'BOS'
-eos = 'EOS'
+from .common import bos, eos
 
 class AbstractFeatureTransformer:
 

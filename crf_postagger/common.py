@@ -1,0 +1,2 @@
+bos = 'BOS'
+eos = 'EOS'

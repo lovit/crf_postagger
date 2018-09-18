@@ -1,4 +1,5 @@
 import re
+from .common import bos, eos
 from .lemmatizer import lemma_candidate
 
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
