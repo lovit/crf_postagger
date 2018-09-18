@@ -157,8 +157,7 @@ def lemma_candidate(l, r):
     # 이었 -> 였 규칙활용
     # 좋아졌 + 어 -> 좋아지 + 었어, 좋아졋 + 던 -> 좋아지 + 었던
     # 종성 ㅆ 을 ㅅ 으로 쓰는 경우도 고려
-    if ((l_last[0] != 'ㅇ') and
-        (l_last[2] == 'ㅆ' or l_last[2] == 'ㅅ' or l_last[2] == ' ') and
+    if ((l_last[2] == 'ㅆ' or l_last[2] == 'ㅅ' or l_last[2] == ' ') and
         (l_last[1] == 'ㅕ') or (l_last[1] == 'ㅓ')):
 
         l_stem = l_front + compose(l_last[0], 'ㅣ', ' ')
