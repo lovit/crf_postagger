@@ -1,8 +1,10 @@
 import re
-from .common import bos, eos
+from collections import namedtuple
+from .common import bos, eos, unk
 from .lemmatizer import lemma_candidate
 
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
+Node = namedtuple('Node', 'words first_word last_word first_tag last_tag begin end node_score')
 
 class BaseNodeGenerator:
     def __init__(self, pos2words, state_features, max_word_len=0):
@@ -20,7 +22,63 @@ class BaseNodeGenerator:
             max(len(word) for word in words) for words in self.pos2words.values())
 
     def generate(self, sentence):
-        raise NotImplemented
+        # prepare lookup list
+        chars = sentence.replace(' ','')
+        sent = self._sentence_lookup(sentence)
+        n_char = len(sent) + 1
+
+        # add end node
+        eos_node = Node(eos, eos, None, eos, None, n_char-1, n_char, 0)
+        sent.append([eos_node])
+
+        # check first word position
+        nonempty_first = self._get_nonempty_first(sent, n_char)
+        if nonempty_first > 0:
+            # (words, first_word, last_word, first_tag, last_tag, begin, end, node_score)
+            word = chars[:nonempty_first]
+            sent[0] = [Node(word, word, word, unk, unk, 0, nonempty_first, 0)]
+
+        # add link between adjacent nodes
+        edges = self._link_adjacent_nodes(sent, chars, n_char)
+
+        for edge in edges:
+            print(edge[0])
+            print(edge[1], end='\n\n')
+        # add link from unk node
+        edges = self._link_from_unk_nodes(edges, sent)
+
+        bos_node = Node(bos, None, bos, None, bos, 0, 0, 0)
+        for word in sent[0]:
+            edges.append((bos_node, word))
+        edges = sorted(edges, key=lambda x:(x[0].begin, x[1].end))
+
+        return edges, bos_node, eos_node
+
+    def _get_nonempty_first(self, sent, end, offset=0):
+        for i in range(offset, end):
+            if sent[i]:
+                return i
+        return offset
+
+    def _link_adjacent_nodes(self, sent, chars, n_char):
+        edges = []
+        for words in sent[:-1]:
+            for word in words:
+                if not sent[word.end]:
+                    unk_end = self._get_nonempty_first(sent, n_char, word.end)
+                    unk_word = chars[word.end:unk_end]
+                    unk_node = Node(unk_word, unk_word, unk_word, unk, unk, word.end, unk_end, 0)
+                    edges.append((word, unk_node))
+                for adjacent in sent[word.end]:
+                    edges.append((word, adjacent))
+        return edges
+
+    def _link_from_unk_nodes(self, edges, sent):
+        unk_nodes = {to_node for _, to_node in edges if to_node.last_tag == unk}
+        for unk_node in unk_nodes:
+            for adjacent in sent[unk_node.end]:
+                edges.append((unk_node, adjacent))
+        return edges
 
     def _sentence_lookup(self, sentence):
         sentence = doublespace_pattern.sub(' ', sentence)
@@ -38,21 +96,25 @@ class BaseNodeGenerator:
                 if e > n:
                     continue
                 sub = eojeol[b:e]
-                for tag in self._get_pos(sub):
-                    pos[b].append((sub, tag, tag, b+offset, e+offset))
+                for tag, score in self._get_pos(sub):
+                    pos[b].append(Node(sub, sub, sub, tag, tag, b+offset, e+offset, score))
                 for lemma_node in self._add_lemmas(sub, r, b, e, offset):
                     pos[b].append(lemma_node)
         return pos
 
     def _get_pos(self, word):
-        return [tag for tag, words in self.pos2words.items() if word in words]
+        return [(tag, words[word]) for tag, words in self.pos2words.items() if word in words]
 
     def _add_lemmas(self, sub, r, b, e, offset):
         for i in range(1, min(self.max_word_len, len(sub)) + 1):
             try:
                 lemmas = self._lemmatize(sub, i)
-                for sub_, tag0, tag1 in lemmas:
-                    node = (sub_, tag0, tag1, b+offset, e+offset)
+                for l_morph, r_morph, l_tag, r_tag, score in lemmas:
+                    node = Node(
+                        l_morph + ' + ' + r_morph,
+                        l_morph, r_morph, l_tag, r_tag, b+offset, e+offset,
+                        score
+                    )
                     yield node
             except:
                 continue
@@ -63,12 +125,11 @@ class BaseNodeGenerator:
         lemmas = []
         len_word = len(word)
         for l_, r_ in lemma_candidate(l, r):
-            word_ = l_ + ' + ' + r_
             if (l_ in self.pos2words.get('Verb', {})) and (r_ in self.pos2words.get('Eomi', {})):
-                lemmas.append((word_, 'Verb', 'Eomi'))
+                lemmas.append((l_, r_, 'Verb', 'Eomi', self.pos2word['Verb'][l_] + self.pos2word['Eomi'][r_]))
             if (l_ in self.pos2words.get('Adjective', {})) and (r_ in self.pos2words.get('Eomi', {})):
-                lemmas.append((word_, 'Adjective', 'Eomi'))
+                lemmas.append((l_, r_, 'Adjective', 'Eomi', self.pos2word['Adjective'][l_] + self.pos2word['Eomi'][r_]))
             if len_word > 1 and not (word in self.pos2words.get('Noun', {})):
                 if (l_ in self.pos2words['Noun']) and (r_ in self.pos2words['Josa']):
-                    lemmas.append((word_, 'Noun', 'Josa'))
+                    lemmas.append((l_, r_, 'Noun', 'Josa', self.pos2word['Noun'][l_] + self.pos2word['Josa'][r_]))
         return lemmas
