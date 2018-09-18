@@ -21,6 +21,9 @@ class HMMNodeGenerator:
         self.max_word_len = max(
             max(len(word) for word in words) for words in self.pos2words.values())
 
+    def __call__(self, sentence):
+        return self.generate(sentence)
+
     def generate(self, sentence):
         # prepare lookup list
         chars = sentence.replace(' ','')
