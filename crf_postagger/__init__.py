@@ -1,4 +1,4 @@
-from .common import bos, eos
+from .common import bos, eos, unk
 from .lemmatizer import lemma_candidate
 from .node import BaseNodeGenerator
 from .tagger import TrainedCRFTagger
