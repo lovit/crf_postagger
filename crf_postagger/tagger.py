@@ -44,3 +44,9 @@ class TrainedCRFTagger:
     def tag(self, sentence):
         edges, bos, eos = self.node_generator.generate(sentence)
         return edges
+
+    def add_user_dictionary(self, tag, word_score):
+        if not (tag in self.node_generator.pos2words):
+            raise ValueError('{} tag does not exist in model'.format(tag))
+        for word, score in word_score.items():
+            self.node_generator.pos2words[tag][word] = score
