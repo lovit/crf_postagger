@@ -108,15 +108,15 @@ class BaseNodeGenerator:
     def _add_lemmas(self, sub, r, b, e, offset):
         for i in range(1, min(self.max_word_len, len(sub)) + 1):
             try:
-                lemmas = self._lemmatize(sub, i)
-                for l_morph, r_morph, l_tag, r_tag, score in lemmas:
+                for l_morph, r_morph, l_tag, r_tag, score in self._lemmatize(sub, i):
                     node = Node(
                         l_morph + ' + ' + r_morph,
                         l_morph, r_morph, l_tag, r_tag, b+offset, e+offset,
                         score
                     )
                     yield node
-            except:
+            except Exception as e:
+                print(e)
                 continue
 
     def _lemmatize(self, word, i):
@@ -126,10 +126,9 @@ class BaseNodeGenerator:
         len_word = len(word)
         for l_, r_ in lemma_candidate(l, r):
             if (l_ in self.pos2words.get('Verb', {})) and (r_ in self.pos2words.get('Eomi', {})):
-                lemmas.append((l_, r_, 'Verb', 'Eomi', self.pos2word['Verb'][l_] + self.pos2word['Eomi'][r_]))
+                yield (l_, r_, 'Verb', 'Eomi', self.pos2words['Verb'][l_] + self.pos2words['Eomi'][r_])
             if (l_ in self.pos2words.get('Adjective', {})) and (r_ in self.pos2words.get('Eomi', {})):
-                lemmas.append((l_, r_, 'Adjective', 'Eomi', self.pos2word['Adjective'][l_] + self.pos2word['Eomi'][r_]))
+                yield (l_, r_, 'Adjective', 'Eomi', self.pos2words['Adjective'][l_] + self.pos2words['Eomi'][r_])
             if len_word > 1 and not (word in self.pos2words.get('Noun', {})):
                 if (l_ in self.pos2words['Noun']) and (r_ in self.pos2words['Josa']):
-                    lemmas.append((l_, r_, 'Noun', 'Josa', self.pos2word['Noun'][l_] + self.pos2word['Josa'][r_]))
-        return lemmas
+                    yield (l_, r_, 'Noun', 'Josa', self.pos2words['Noun'][l_] + self.pos2words['Josa'][r_])
