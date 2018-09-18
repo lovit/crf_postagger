@@ -121,7 +121,7 @@ class HMMNodeGenerator:
             try:
                 for l_morph, r_morph, l_tag, r_tag, score in self._lemmatize(sub, i):
                     node = Node(
-                        l_morph + ' + ' + r_morph,
+                        '%s/%s + %s/%s' % (l_morph, l_tag, r_morph, r_tag),
                         l_morph, r_morph, l_tag, r_tag, b+offset, e+offset,
                         score
                     )
