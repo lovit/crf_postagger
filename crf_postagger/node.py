@@ -1,16 +1,27 @@
-import re
+from collections import defaultdict
 from collections import namedtuple
+import re
+import json
+
 from .common import bos, eos, unk
 from .lemmatizer import lemma_candidate
+from .trainer import Feature
 
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
 Node = namedtuple('Node', 'words first_word last_word first_tag last_tag begin end node_score')
 
 class HMMNodeGenerator:
-    def __init__(self, pos2words=None, state_features=None, max_word_len=0):
+    def __init__(self, model_path=None, pos2words=None,
+        max_word_len=0, parameter_marker=' -> '):
+
         self.pos2words = pos2words
-        self.state_features = state_features
         self.max_word_len = max_word_len
+
+        if model_path:
+            self._load_from_json(model_path, parameter_marker)
+
+        if not pos2words:
+            self._construct_dictionary_from_state_features()
 
         if self.max_word_len == 0:
             self._check_max_word_len()
@@ -135,3 +146,38 @@ class HMMNodeGenerator:
             if len_word > 1 and not (word in self.pos2words.get('Noun', {})):
                 if (l_ in self.pos2words['Noun']) and (r_ in self.pos2words['Josa']):
                     yield (l_, r_, 'Noun', 'Josa', self.pos2words['Noun'][l_] + self.pos2words['Josa'][r_])
+
+    def _load_from_json(self, json_path, marker = ' -> '):
+        with open(json_path, encoding='utf-8') as f:
+            model = json.load(f)
+
+        # parse transition
+        self._transitions = {
+            tuple(trans.split(marker)): coef
+            for trans, coef in model['transitions'].items()
+        }
+
+        # parse state features
+        self._state_features = {
+            tuple(feature.split(marker)): coef
+            for feature, coef in model['state_features'].items()
+        }
+
+        # get idx2features
+        self._idx2feature = model['idx2feature']
+
+        # parse feature information map
+        self._features = {
+            feature: Feature(idx, count)
+            for feature, (idx, count) in model['features'].items()
+        }
+
+        del model
+
+    def _construct_dictionary_from_state_features(self):
+        self.pos2words = defaultdict(lambda: {})
+        for (feature, tag), coef in self._state_features.items():
+            if (feature[:4] == 'x[0]') and not (', ' in feature) and coef > 0:
+                word = feature[5:]
+                self.pos2words[tag][word] = coef
+        self.pos2words = dict(self.pos2words)
