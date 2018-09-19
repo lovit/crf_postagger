@@ -44,14 +44,21 @@ class HMMStyleTagger:
 
         return score
 
-    def tag(self, sentence):
+    def tag(self, sentence, debug=False):
         # generate nodes and edges
         edges, bos_node, eos_node = self.parameters.generate(sentence)
         nodes = {node for edge in edges for node in edge[:2]}
 
         # add transition score
         edges = _hmm_style_tagger_weight(
-            edges, self.parameters, self._a_syllable_penalty)
+            edges, self.parameters, self._a_syllable_penalty, self._noun_preference)
+
+        # debug
+        if debug:
+            for from_, to_, score in edges:
+                print('from : {}'.format(from_))
+                print('to   : {}'.format(to_))
+                print('score: {}\n'.format(score))
 
         # find optimal path
         path, cost = ford_list(edges, nodes, bos_node, eos_node)
