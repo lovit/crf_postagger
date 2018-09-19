@@ -125,16 +125,16 @@ class TrigramTagger(HMMStyleTagger):
 
     def tag(self, sentence, debug=False, k=5):
         # generate nodes and edges
-        nodes = self.parameters.generate(sentence)
+        sents = self.parameters.generate(sentence)
         return nodes
 
         # find optimal path
-        paths = _trigram_tagger_beam_search(nodes, k)
+        paths = _trigram_tagger_beam_search(sents, k)
 
         # post-processing
         paths = [self._postprocessing(path) for path in paths]
 
         return paths
 
-def _trigram_tagger_beam_search(edges):
+def _trigram_tagger_beam_search(sents):
     raise NotImplemented
