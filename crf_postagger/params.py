@@ -239,7 +239,7 @@ class TrigramParameter(AbstractParameter):
         self.bothside_1X01 = defaultdict(lambda: {})
 
         for (feature, tag), coef in self.state_features.items():
-            if is_10X(feature):
+            if is_1X0(feature):
                 self.previous_1X0[tag][parse_word(feature)] = coef
             elif is_X0_1Y(feature):
                 self.previous_X0_1Y[tag][parse_word(feature)] = coef
@@ -253,7 +253,7 @@ class TrigramParameter(AbstractParameter):
                 self.bothside_1X01[tag][parse_word(feature)] = coef
 
         # previous features
-        self.previous_1X0 = dict(self.previous_10X)
+        self.previous_1X0 = dict(self.previous_1X0)
         self.previous_X0_1Y = dict(self.previous_X0_1Y)
         # successive features
         self.successive_X01 = dict(self.successive_X01)
