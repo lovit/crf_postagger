@@ -50,7 +50,8 @@ class HMMStyleTagger:
         nodes = {node for edge in edges for node in edge[:2]}
 
         # add transition score
-        edges = self._add_weight(edges)
+        edges = _hmm_style_tagger_weight(
+            edges, self.parameters, self._a_syllable_penalty)
 
         # find optimal path
         path, cost = ford_list(edges, nodes, bos_node, eos_node)
@@ -59,19 +60,6 @@ class HMMStyleTagger:
         path = self._postprocessing(path)
 
         return path
-
-    def _add_weight(self, edges):
-        def get_transition(f, t):
-            return self.parameters.transitions.get((f, t), 0)
-
-        def get_score(from_, to_):
-            score = get_transition(from_.last_tag, to_.first_tag) + to_.node_score
-            if len(to_.first_word) == 1:
-                score += self._a_syllable_penalty
-            if not (to_.first_word == to_.last_tag):
-                score += get_transition(to_.first_tag, to_.last_tag)
-            return score
-        return [(from_, to_, get_score(from_, to_)) for from_, to_ in edges]
 
     def _postprocessing(self, path):
         poses = []
@@ -90,3 +78,16 @@ class HMMStyleTagger:
             raise ValueError('{} tag does not exist in model'.format(tag))
         for word, score in word_score.items():
             self.parameters.pos2words[tag][word] = score
+
+def _hmm_style_tagger_weight(edges, parameters, _a_syllable_penalty):
+    def get_transition(f, t):
+        return parameters.transitions.get((f, t), 0)
+
+    def get_score(from_, to_):
+        score = get_transition(from_.last_tag, to_.first_tag) + to_.node_score
+        if len(to_.first_word) == 1:
+            score += _a_syllable_penalty
+        if not (to_.first_word == to_.last_tag):
+            score += get_transition(to_.first_tag, to_.last_tag)
+        return score
+    return [(from_, to_, get_score(from_, to_)) for from_, to_ in edges]
