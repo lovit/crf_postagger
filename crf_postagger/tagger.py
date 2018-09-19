@@ -70,6 +70,7 @@ class HMMStyleTagger:
         return path
 
     def _postprocessing(self, path):
+        # TODO: common unitfy or separate
         poses = []
         for node in path[1:-1]:
             poses_ = node.pos.split(' + ')
