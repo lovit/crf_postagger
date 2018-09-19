@@ -54,22 +54,22 @@ class AbstractParameter:
                 if e > n:
                     continue
                 sub = eojeol[b:e]
-                for tag, score in self._get_pos(sub):
-                    pos[b].append((sub, tag, b+offset, e+offset, score))
+                for tag in self._get_pos(sub):
+                    pos[b].append((sub, tag, b+offset, e+offset))
                 for lemma_node in self._add_lemmas(sub, r, b, e, offset):
                     pos[b].append(lemma_node)
         return pos
 
     def _get_pos(self, word):
-        return [(tag, words[word]) for tag, words in self.pos2words.items() if word in words]
+        return tuple(tag for tag, words in self.pos2words.items() if word in words)
 
     def _add_lemmas(self, sub, r, b, e, offset):
         for i in range(1, min(self.max_word_len, len(sub)) + 1):
             try:
-                for l_morph, r_morph, l_tag, r_tag, score in self._lemmatize(sub, i):
+                for l_morph, r_morph, l_tag, r_tag in self._lemmatize(sub, i):
                     node = ('%s + %s' %  (l_morph, r_morph),
                             '%s + %s' % (l_tag, r_tag),
-                            b+offset, e+offset, score)
+                            b + offset, e + offset)
                     yield node
             except Exception as e:
                 #print(e)
@@ -82,12 +82,12 @@ class AbstractParameter:
         len_word = len(word)
         for l_, r_ in lemma_candidate(l, r):
             if (l_ in self.pos2words.get('Verb', {})) and (r_ in self.pos2words.get('Eomi', {})):
-                yield (l_, r_, 'Verb', 'Eomi', self.pos2words['Verb'][l_] + self.pos2words['Eomi'][r_])
+                yield (l_, r_, 'Verb', 'Eomi')
             if (l_ in self.pos2words.get('Adjective', {})) and (r_ in self.pos2words.get('Eomi', {})):
-                yield (l_, r_, 'Adjective', 'Eomi', self.pos2words['Adjective'][l_] + self.pos2words['Eomi'][r_])
+                yield (l_, r_, 'Adjective', 'Eomi')
             if len_word > 1 and not (word in self.pos2words.get('Noun', {})):
                 if (l_ in self.pos2words['Noun']) and ( (r_ == 'ㄴ') or (r_ == 'ㄹ') ):
-                    yield (l_, r_, 'Noun', 'Josa', self.pos2words['Noun'][l_] + self.pos2words['Josa'].get(r_, 0))
+                    yield (l_, r_, 'Noun', 'Josa')
 
     def _load_from_json(self, json_path, marker = ' -> '):
         with open(json_path, encoding='utf-8') as f:
@@ -139,12 +139,14 @@ class HMMStyleParameter(AbstractParameter):
 
         # wrap node to Word
         def to_Word(node):
-            words, tags, b, e, score = node
+            words, tags, b, e = node
             words = words.split(' + ')
             tags = tags.split(' + ')
+            score = self.pos2words.get(tags[0], {}).get(words[0], 0)
             if len(words) == 1:
                 return Word(words[0], words[0], words[0], tags[0], tags[0], b, e, score)
             pos = '%s/%s + %s/%s' % (words[0], tags[0], words[1], tags[1])
+            score += self.pos2words.get(tags[1], {}).get(words[1], 0)
             return Word(pos, words[0], words[1], tags[0], tags[1], b, e, score)
 
         sent = [[to_Word(node) for node in words] for words in sent]
