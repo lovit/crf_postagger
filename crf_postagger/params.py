@@ -208,5 +208,59 @@ class TrigramParameter(AbstractParameter):
         super().__init__(
             model_path, pos2words, max_word_len, parameter_marker)
 
+        self._separate_features()
+
+    def _separate_features(self):
+        is_1X0 =    lambda x: ('x[-1:0]' in x) and not (' ' in x)
+        is_X0_1Y =  lambda x: ('y[-1]' in x) and not (' ' in x)
+        is_X01 =    lambda x: ('x[0:1]') in x and not (' ' in x)
+        is_X01_Y1 = lambda x: ('x[0:1]') in x and ('y[1]' in x)
+        is_1X1 =    lambda x: ('x[-1,1]' in x)
+        is_1X01 =   lambda x: ('x[-1:1]' in x)
+
+        def parse_word(feature):
+            poses = feature.split(', ')
+            wordtags = tuple(
+                wordtag for pos in poses for wordtag
+                in pos.split(']=')[-1].split('-')
+            )
+            return wordtags
+
+        # previous features
+        self.previous_1X0 = defaultdict(lambda: {})
+        self.previous_X0_1Y = defaultdict(lambda: {})
+
+        # successive features
+        self.successive_X01 = defaultdict(lambda: {})
+        self.successive_X01_Y1 = defaultdict(lambda: {})
+
+        # bothside_features
+        self.bothside_1X1 = defaultdict(lambda: {})
+        self.bothside_1X01 = defaultdict(lambda: {})
+
+        for (feature, tag), coef in self.state_features.items():
+            if is_10X(feature):
+                self.previous_1X0[tag][parse_word(feature)] = coef
+            elif is_X0_1Y(feature):
+                self.previous_X0_1Y[tag][parse_word(feature)] = coef
+            elif is_X01(feature):
+                self.successive_X01[tag][parse_word(feature)] = coef
+            elif is_X01_Y1(feature):
+                self.successive_X01_Y1[tag][parse_word(feature)] = coef
+            elif is_1X1(feature):
+                self.bothside_1X1[tag][parse_word(feature)] = coef
+            elif is_1X01(feature):
+                self.bothside_1X01[tag][parse_word(feature)] = coef
+
+        # previous features
+        self.previous_1X0 = dict(self.previous_10X)
+        self.previous_X0_1Y = dict(self.previous_X0_1Y)
+        # successive features
+        self.successive_X01 = dict(self.successive_X01)
+        self.successive_X01_Y1 = dict(self.successive_X01_Y1)
+        # bothside_features
+        self.bothside_1X1 = dict(self.bothside_1X1)
+        self.bothside_1X01 = dict(self.bothside_1X01)
+
     #def generate(self, sentence):
     #    raise NotImplemented
