@@ -188,3 +188,13 @@ class HMMStyleParameter(AbstractParameter):
             for adjacent in sent[unk_node.end]:
                 edges.append((unk_node, adjacent))
         return edges
+
+class TrigramParameter(AbstractParameter):
+    def __init__(self, model_path=None, pos2words=None,
+        max_word_len=0, parameter_marker=' -> '):
+
+        super().__init__(
+            model_path, pos2words, max_word_len, parameter_marker)
+
+    #def generate(self, sentence):
+    #    raise NotImplemented
