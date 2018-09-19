@@ -18,6 +18,7 @@ class HMMStyleTagger:
         self.verbose = verbose
 
         self._a_syllable_penalty = -7
+        self._noun_preference = 10
 
     def score(self, wordpos_sentence, debug=False):
 
@@ -51,7 +52,7 @@ class HMMStyleTagger:
 
         # add transition score
         edges = _hmm_style_tagger_weight(
-            edges, self.parameters, self._a_syllable_penalty)
+            edges, self.parameters, self._a_syllable_penalty, self._noun_preference)
 
         # debug
         if debug:
@@ -86,7 +87,7 @@ class HMMStyleTagger:
         for word, score in word_score.items():
             self.parameters.pos2words[tag][word] = score
 
-def _hmm_style_tagger_weight(edges, parameters, _a_syllable_penalty):
+def _hmm_style_tagger_weight(edges, parameters, _a_syllable_penalty, _noun_preference):
     def get_transition(f, t):
         return parameters.transitions.get((f, t), 0)
 
@@ -97,6 +98,8 @@ def _hmm_style_tagger_weight(edges, parameters, _a_syllable_penalty):
             score += _a_syllable_penalty
         #if not (to_.first_word == to_.last_tag):
         #    score += get_transition(to_.first_tag, to_.last_tag)
+        if to_.first_tag == 'Noun':
+            score += _noun_preference
         return score
     return [(from_, to_, get_score(from_, to_)) for from_, to_ in edges]
 
