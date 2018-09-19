@@ -5,6 +5,7 @@ from .params import HMMStyleParameter
 from .params import TrigramParameter
 from .path import ford_list
 from .tagger import HMMStyleTagger
+from .tagger import TrigramTagger
 from .trainer import Trainer
 from .transformer import BaseFeatureTransformer
 from .transformer import TrigramFeatureTransformer
