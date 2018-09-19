@@ -8,7 +8,7 @@ from .lemmatizer import lemma_candidate
 from .trainer import Feature
 
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
-Node = namedtuple('Node', 'pos first_word last_word first_tag last_tag begin end node_score')
+Word = namedtuple('Word', 'pos first_word last_word first_tag last_tag begin end node_score')
 
 class AbstractParameter:
     def __init__(self, model_path=None, pos2words=None,
@@ -55,7 +55,7 @@ class AbstractParameter:
                     continue
                 sub = eojeol[b:e]
                 for tag, score in self._get_pos(sub):
-                    pos[b].append(Node(sub, sub, sub, tag, tag, b+offset, e+offset, score))
+                    pos[b].append((sub, tag, b+offset, e+offset, score))
                 for lemma_node in self._add_lemmas(sub, r, b, e, offset):
                     pos[b].append(lemma_node)
         return pos
@@ -67,14 +67,12 @@ class AbstractParameter:
         for i in range(1, min(self.max_word_len, len(sub)) + 1):
             try:
                 for l_morph, r_morph, l_tag, r_tag, score in self._lemmatize(sub, i):
-                    node = Node(
-                        '%s/%s + %s/%s' % (l_morph, l_tag, r_morph, r_tag),
-                        l_morph, r_morph, l_tag, r_tag, b+offset, e+offset,
-                        score
-                    )
+                    node = ('%s + %s' %  (l_morph, r_morph),
+                            '%s + %s' % (l_tag, r_tag),
+                            b+offset, e+offset, score)
                     yield node
             except Exception as e:
-                print(e)
+                #print(e)
                 continue
 
     def _lemmatize(self, word, i):
@@ -139,8 +137,20 @@ class HMMStyleParameter(AbstractParameter):
         sent = self._sentence_lookup(sentence)
         n_char = len(sent) + 1
 
+        # wrap node to Word
+        def to_Word(node):
+            words, tags, b, e, score = node
+            words = words.split(' + ')
+            tags = tags.split(' + ')
+            if len(words) == 1:
+                return Word(words[0], words[0], words[0], tags[0], tags[0], b, e, score)
+            pos = '%s/%s + %s/%s' % (words[0], tags[0], words[1], tags[1])
+            return Word(pos, words[0], words[1], tags[0], tags[1], b, e, score)
+
+        sent = [[to_Word(node) for node in words] for words in sent]
+
         # add end node
-        eos_node = Node(eos, eos, None, eos, None, n_char-1, n_char, 0)
+        eos_node = Word(eos, eos, None, eos, None, n_char-1, n_char, 0)
         sent.append([eos_node])
 
         # check first word position
@@ -148,7 +158,7 @@ class HMMStyleParameter(AbstractParameter):
         if nonempty_first > 0:
             # (words, first_word, last_word, first_tag, last_tag, begin, end, node_score)
             word = chars[:nonempty_first]
-            sent[0] = [Node(word, word, word, unk, unk, 0, nonempty_first, 0)]
+            sent[0] = [Word(word, word, word, unk, unk, 0, nonempty_first, 0)]
 
         # add link between adjacent nodes
         edges = self._link_adjacent_nodes(sent, chars, n_char)
@@ -156,7 +166,7 @@ class HMMStyleParameter(AbstractParameter):
         # add link from unk node
         edges = self._link_from_unk_nodes(edges, sent)
 
-        bos_node = Node(bos, None, bos, None, bos, 0, 0, 0)
+        bos_node = Word(bos, None, bos, None, bos, 0, 0, 0)
         for word in sent[0]:
             edges.append((bos_node, word))
         edges = sorted(edges, key=lambda x:(x[0].begin, x[1].end))
@@ -176,7 +186,7 @@ class HMMStyleParameter(AbstractParameter):
                 if not sent[word.end]:
                     unk_end = self._get_nonempty_first(sent, n_char, word.end)
                     unk_word = chars[word.end:unk_end]
-                    unk_node = Node(unk_word, unk_word, unk_word, unk, unk, word.end, unk_end, 0)
+                    unk_node = Word(unk_word, unk_word, unk_word, unk, unk, word.end, unk_end, 0)
                     edges.append((word, unk_node))
                 for adjacent in sent[word.end]:
                     edges.append((word, adjacent))
