@@ -2,18 +2,18 @@ from .transformer import *
 
 class HMMStyleTagger:
 
-    def __init__(self, node_generator,
+    def __init__(self, parameters,
         feature_transformer=None, verbose=False):
 
         if feature_transformer is None:
             feature_transformer = BaseFeatureTransformer()
-        if node_generator is None:
-            node_generator = HMMNodeGenerator()
+        if parameters is None:
+            parameters = HMMStyleParameter()
         if verbose:
             print('use {}'.format(feature_transformer.__class__))
 
         self.feature_transformer = feature_transformer
-        self.node_generator = node_generator
+        self.parameters = parameters
         self.verbose = verbose
 
         self._a_syllable_penalty = -7
@@ -27,7 +27,7 @@ class HMMStyleTagger:
         # transition weight
         for s0, s1 in zip(tags, tags[1:]):
             transition = (s0, s1)
-            coef = self.node_generator.transitions.get(transition, 0)
+            coef = self.parameters.transitions.get(transition, 0)
             if debug:
                 print('{} = {:f}, score = {:f}'.format(transition, coef, score))
             score += coef
@@ -38,14 +38,14 @@ class HMMStyleTagger:
                 if debug:
                     print('{} -> {} = {:f}, score = {:f}'.format(
                         feature, tag, coef, score))
-                coef = self.node_generator.state_features.get((feature, tag), 0)
+                coef = self.parameters.state_features.get((feature, tag), 0)
                 score += coef
 
         return score
 
     def tag(self, sentence):
         # generate nodes and edges
-        edges, bos_node, eos_node = self.node_generator.generate(sentence)
+        edges, bos_node, eos_node = self.parameters.generate(sentence)
         nodes = {node for edge in edges for node in edge[:2]}
 
         # add transition score
@@ -61,7 +61,7 @@ class HMMStyleTagger:
 
     def _add_weight(self, edges):
         def get_transition(f, t):
-            return self.node_generator.transitions.get((f, t), 0)
+            return self.parameters.transitions.get((f, t), 0)
 
         def get_score(from_, to_):
             score = get_transition(from_.last_tag, to_.first_tag) + to_.node_score
@@ -85,7 +85,7 @@ class HMMStyleTagger:
         return poses
 
     def add_user_dictionary(self, tag, word_score):
-        if not (tag in self.node_generator.pos2words):
+        if not (tag in self.parameters.pos2words):
             raise ValueError('{} tag does not exist in model'.format(tag))
         for word, score in word_score.items():
-            self.node_generator.pos2words[tag][word] = score
+            self.parameters.pos2words[tag][word] = score
