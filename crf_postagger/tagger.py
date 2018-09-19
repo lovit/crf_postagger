@@ -13,8 +13,8 @@ class HMMStyleTagger:
         if verbose:
             print('use {}'.format(feature_transformer.__class__))
 
-        self.feature_transformer = feature_transformer
         self.parameters = parameters
+        self.feature_transformer = feature_transformer
         self.verbose = verbose
 
         self._a_syllable_penalty = -7
