@@ -1,5 +1,6 @@
 from .common import bos, eos, unk
 from .lemmatizer import lemma_candidate
+from .params import AbstractParameter
 from .params import HMMStyleParameter
 from .path import ford_list
 from .tagger import HMMStyleTagger
