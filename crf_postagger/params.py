@@ -86,8 +86,8 @@ class AbstractParameter:
             if (l_ in self.pos2words.get('Adjective', {})) and (r_ in self.pos2words.get('Eomi', {})):
                 yield (l_, r_, 'Adjective', 'Eomi', self.pos2words['Adjective'][l_] + self.pos2words['Eomi'][r_])
             if len_word > 1 and not (word in self.pos2words.get('Noun', {})):
-                if (l_ in self.pos2words['Noun']) and (r_ in self.pos2words['Josa']):
-                    yield (l_, r_, 'Noun', 'Josa', self.pos2words['Noun'][l_] + self.pos2words['Josa'][r_])
+                if (l_ in self.pos2words['Noun']) and ( (r_ == 'ㄴ') or (r_ == 'ㄹ') ):
+                    yield (l_, r_, 'Noun', 'Josa', self.pos2words['Noun'][l_] + self.pos2words['Josa'].get(r_, 0))
 
     def _load_from_json(self, json_path, marker = ' -> '):
         with open(json_path, encoding='utf-8') as f:
