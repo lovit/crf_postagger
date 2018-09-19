@@ -99,3 +99,39 @@ def _hmm_style_tagger_weight(edges, parameters, _a_syllable_penalty):
         #    score += get_transition(to_.first_tag, to_.last_tag)
         return score
     return [(from_, to_, get_score(from_, to_)) for from_, to_ in edges]
+
+########################################
+
+class TrigramTagger(HMMStyleTagger):
+
+    def __init__(self, parameters,
+        feature_transformer=None, verbose=False):
+
+        if feature_transformer is None:
+            feature_transformer = TrigramFeatureTransformer()
+        if parameters is None:
+            parameters = TrigramFeatureTransformer()
+        if verbose:
+            print('use {}'.format(feature_transformer.__class__))
+
+        self.parameters = parameters
+        self.feature_transformer = feature_transformer
+        self.verbose = verbose
+
+        self._a_syllable_penalty = -7
+
+    def tag(self, sentence, debug=False, k=5):
+        # generate nodes and edges
+        nodes = self.parameters.generate(sentence)
+        return nodes
+
+        # find optimal path
+        paths = _trigram_tagger_beam_search(nodes, k)
+
+        # post-processing
+        paths = [self._postprocessing(path) for path in paths]
+
+        return paths
+
+def _trigram_tagger_beam_search(edges):
+    raise NotImplemented
