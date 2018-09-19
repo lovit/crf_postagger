@@ -51,7 +51,7 @@ class HMMStyleTagger:
 
         # add transition score
         edges = _hmm_style_tagger_weight(
-            edges, self.parameters, self._a_syllable_penalty, self._noun_preference)
+            edges, self.parameters, self._a_syllable_penalty)
 
         # debug
         if debug:
