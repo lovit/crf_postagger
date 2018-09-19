@@ -230,4 +230,8 @@ tag 함수는 str 형식의 문장에 대하여 형태소 분석 결과를 retur
     ('의', 'Josa', 19, 20)
     ('날씨', 'Noun', 20, 22)
 
+## TODO
+
+unknown word 에 대한 inference 기능은 구현하지 않았습니다.
+
 [crf_tagger_post]: https://lovit.github.io/nlp/2018/09/13/crf_based_tagger/
