@@ -61,11 +61,16 @@ class TrigramFeatureTransformer(AbstractFeatureTransformer):
 
     def to_feature(self, words_, tags_, i):
         features = [
+            # Capital: successive direction, lower case: previous
+            # word feature; X0
             'x[0]=%s' % words_[i],
+            # previous features; X0_y1, x10
             'x[0]=%s, y[-1]=%s' % (words_[i], tags_[i-1]),
             'x[-1:0]=%s-%s' % (words_[i-1], words_[i]),
+            # successive features; X01, X01_Y1
             'x[0:1]=%s-%s' % (words_[i], words_[i+1]),
             'x[0:1]=%s-%s, y[1]=%s' % (words_[i], words_[i+1], tags_[i+1]),
+            # both_side; X11, X101
             'x[-1,1]=%s-%s' % (words_[i-1], words_[i+1]),
             'x[-1:1]=%s-%s-%s' % (words_[i-1], words_[i], words_[i+1])
         ]
