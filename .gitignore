@@ -12,7 +12,7 @@ build/
 tmp/
 data/
 # temporally
-models/
+models/*.json
 
 # Jupyter notebook
 .ipynb_checkpoints/
