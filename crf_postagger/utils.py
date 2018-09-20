@@ -16,6 +16,14 @@ class Corpus:
                 wordpos = [token.rsplit('/', 1) for token in sent.split()]
                 yield wordpos
 
+def _to_end_index(begin_index):
+    end_index = [[] for _ in range(len(begin_index) + 1)]
+    for words in begin_index:
+        for word in words:
+            # format: (word, tag, b, e)
+            end_index[word[3]].append(word)
+    return end_index
+
 def check_dirs(path):
     dirname = os.path.dirname(path)
     if dirname and dirname != '.' and not os.path.exists(dirname):

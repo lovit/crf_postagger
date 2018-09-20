@@ -2,6 +2,7 @@ from collections import namedtuple
 from .common import bos, eos, unk
 from .transformer import *
 from .path import ford_list
+from .utils import _to_end_index
 
 class HMMStyleTagger:
 
@@ -146,13 +147,6 @@ class TrigramTagger(HMMStyleTagger):
 
         return paths
 
-def _to_end_index(begin_index):
-    end_index = [[] for _ in range(len(begin_index) + 1)]
-    for words in begin_index:
-        for word in words:
-            # format: (word, tag, b, e)
-            end_index[word[3]].append(word)
-    return end_index
 
 Poses = namedtuple('Poses', 'poses score')
 
