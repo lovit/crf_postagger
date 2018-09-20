@@ -166,7 +166,7 @@ class Beam:
 
     def append(self, candidates):
         # descending order of score, last item in list
-        candidates = sorted(candidates, key=lambda x:-x[-1])[:self.k]
+        candidates = sorted(candidates, key=lambda x:-x.score)[:self.k]
         self.beam += [candidates]
 
 def _trigram_tagger_beam_search(begin_index, k, chars, params,
