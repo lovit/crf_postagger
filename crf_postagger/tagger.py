@@ -135,7 +135,7 @@ class TrigramTagger(HMMStyleTagger):
 
         # find optimal path
         chars = sentence.replace(' ', '')
-        paths = _trigram_tagger_beam_search(
+        paths = beam_search(
             begin_index, k, chars, self.parameters,
             self._a_syllable_penalty, self._noun_preference,
             self._longer_noun_preference
@@ -163,7 +163,7 @@ class Beam:
         candidates = sorted(candidates, key=lambda x:-x.score)[:self.k]
         self.beam += [candidates]
 
-def _trigram_tagger_beam_search(begin_index, k, chars, params,
+def beam_search(begin_index, k, chars, params,
     a_syllable_penalty, noun_preference, longer_noun_preference):
 
     len_sent = len(chars)
@@ -174,7 +174,7 @@ def _trigram_tagger_beam_search(begin_index, k, chars, params,
         for immature in immatures:
             for pos in appending_poses:
                 poses = (*immature.poses, pos)
-                score = cumulate_score(
+                score = _trigram_beam_search_cumulate_score(
                     immature, pos, params, a_syllable_penalty,
                     noun_preference, longer_noun_preference)
                 matures.append(Poses(poses, score))
@@ -205,7 +205,7 @@ def _trigram_tagger_beam_search(begin_index, k, chars, params,
 
     return beam[-1]
 
-def cumulate_score(immature, pos, params, a_syllable_penalty,
+def _trigram_beam_search_cumulate_score(immature, pos, params, a_syllable_penalty,
     noun_preference, longer_noun_preference):
 
     word, tag = pos[:2]
