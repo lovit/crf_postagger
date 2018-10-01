@@ -1,12 +1,12 @@
 from collections import namedtuple
 from .common import bos, eos, unk, BOS
 
-Poses = namedtuple('Poses', 'poses score')
+Words = namedtuple('Words', 'words score')
 
 class Beam:
     def __init__(self, k):
         self.k = k
-        self.beam = [[Poses((BOS,), 0)]]
+        self.beam = [[Words((BOS,), 0)]]
 
     def __getitem__(self, index):
         return self.beam[index]
@@ -23,14 +23,14 @@ def beam_search(begin_index, k, chars, params,
     max_len = params.max_word_len
     beam = Beam(k)
 
-    def appending(immatures, appending_poses, matures):
+    def appending(immatures, appending_words, matures):
         for immature in immatures:
             for pos in appending_poses:
                 poses = (*immature.poses, pos)
                 score = _trigram_beam_search_cumulate_score(
                     immature, pos, params, a_syllable_penalty,
                     noun_preference, longer_noun_preference)
-                matures.append(Poses(poses, score))
+                matures.append(Words(poses, score))
         return matures
 
     for e in range(1, len_sent + 1):
