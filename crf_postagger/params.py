@@ -168,20 +168,6 @@ class HMMStyleParameter(AbstractParameter):
         sent = self._sentence_lookup(sentence)
         n_char = len(sent) + 1
 
-        # wrap node to Word
-        def to_Word(node):
-            words, tags, b, e = node
-            words = words.split(' + ')
-            tags = tags.split(' + ')
-            score = self.pos2words.get(tags[0], {}).get(words[0], 0)
-            if len(words) == 1:
-                return Word(words[0], words[0], words[0], tags[0], tags[0], b, e, score)
-            pos = '%s/%s + %s/%s' % (words[0], tags[0], words[1], tags[1])
-            score += self.pos2words.get(tags[1], {}).get(words[1], 0)
-            return Word(pos, words[0], words[1], tags[0], tags[1], b, e, score, len(words)==2)
-
-        sent = [[to_Word(node) for node in words] for words in sent]
-
         # add end node
         eos_node = Word(eos, eos, None, eos, None, n_char-1, n_char, 0, 0)
         sent.append([eos_node])
