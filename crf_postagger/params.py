@@ -11,7 +11,7 @@ doublespace_pattern = re.compile(u'\s+', re.UNICODE)
 Word = namedtuple('Word', 'pos first_word last_word first_tag last_tag begin end node_score')
 
 class AbstractParameter:
-    def __init__(self, model_path=None, pos2words=None,
+    def __init__(self, model_path=None, pos2words=None, preanalyzed_lemmas=None,
         max_word_len=0, parameter_marker=' -> '):
 
         self.pos2words = pos2words
@@ -25,6 +25,10 @@ class AbstractParameter:
 
         if self.max_word_len == 0:
             self._check_max_word_len()
+
+        if not preanalyzed_lemmas:
+            preanalyzed_lemmas = {}
+        self.preanalyzed_lemmas = preanalyzed_lemmas
 
     def __call__(self, sentence):
         return self.generate(sentence)
@@ -64,16 +68,26 @@ class AbstractParameter:
         return tuple(tag for tag, words in self.pos2words.items() if word in words)
 
     def _add_lemmas(self, sub, r, b, e, offset):
-        for i in range(1, min(self.max_word_len, len(sub)) + 1):
-            try:
-                for l_morph, r_morph, l_tag, r_tag in self._lemmatize(sub, i):
-                    node = ('%s + %s' %  (l_morph, r_morph),
-                            '%s + %s' % (l_tag, r_tag),
-                            b + offset, e + offset)
-                    yield node
-            except Exception as e:
-                #print(e)
-                continue
+
+        def as_node(l_morph, r_morph, l_tag, r_tag, b, e, offset):
+            return ('%s + %s' %  (l_morph, r_morph),
+                    '%s + %s' % (l_tag, r_tag),
+                    b + offset, e + offset)
+
+        # check pre-analyzed lemmas
+        preanalyzeds = self.preanalyzed_lemmas.get(sub, None)
+        if preanalyzeds:
+            for l_morph, r_morph, l_tag, r_tag in preanalyzeds:
+                yield as_node(l_morph, r_morph, l_tag, r_tag, b, e, offset)
+        # if sub is unseen string
+        else:
+            for i in range(1, min(self.max_word_len, len(sub)) + 1):
+                try:
+                    for l_morph, r_morph, l_tag, r_tag in self._lemmatize(sub, i):
+                        yield as_node(l_morph, r_morph, l_tag, r_tag, b, e, offset)
+                except Exception as e:
+                    #print(e)
+                    continue
 
     def _lemmatize(self, word, i):
         l = word[:i]
@@ -131,11 +145,11 @@ class AbstractParameter:
         self.pos2words = dict(self.pos2words)
 
 class HMMStyleParameter(AbstractParameter):
-    def __init__(self, model_path=None, pos2words=None,
+    def __init__(self, model_path=None, pos2words=None, preanalyzed_lemmas=None,
         max_word_len=0, parameter_marker=' -> '):
 
-        super().__init__(
-            model_path, pos2words, max_word_len, parameter_marker)
+        super().__init__(model_path, pos2words,
+            preanalyzed_lemmas, max_word_len, parameter_marker)
 
     def generate(self, sentence):
         # prepare lookup list
@@ -208,11 +222,11 @@ class HMMStyleParameter(AbstractParameter):
         return edges
 
 class TrigramParameter(AbstractParameter):
-    def __init__(self, model_path=None, pos2words=None,
+    def __init__(self, model_path=None, pos2words=None, preanalyzed_lemmas=None,
         max_word_len=0, parameter_marker=' -> '):
 
-        super().__init__(
-            model_path, pos2words, max_word_len, parameter_marker)
+        super().__init__(model_path, pos2words,
+            preanalyzed_lemmas, max_word_len, parameter_marker)
 
         self._separate_features()
 
