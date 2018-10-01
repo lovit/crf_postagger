@@ -122,14 +122,14 @@ class TrigramTagger(HMMStyleTagger):
         self._noun_preference = 0.5
         self._longer_noun_preference = 0.2
 
-    def tag(self, sentence, flatten=True, k=5):
+    def tag(self, sentence, flatten=True, beam_size=5):
         # generate nodes and edges
         begin_index = self.parameters.generate(sentence)
 
         # find optimal path
         chars = sentence.replace(' ', '')
         top_eojeols = beam_search(
-            begin_index, k, chars, self.parameters,
+            begin_index, beam_size, chars, self.parameters,
             self._a_syllable_penalty, self._noun_preference,
             self._longer_noun_preference
         )
