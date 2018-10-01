@@ -60,7 +60,7 @@ class AbstractParameter:
                 sub = eojeol[b:e]
                 # Word(words, first_word, last_word, first_tag, last_tag, begin, end, word_score, is_compound)
                 for tag, score in self._get_pos(sub):
-                    pos[b].append(Word(sub, sub, sub, tag, tag, b+offset, e+offset, score, 0))
+                    pos[b].append(Word(sub+'/'+tag, sub, sub, tag, tag, b+offset, e+offset, score, 0))
                 for word_form_lemma in self._add_lemmas(sub, b, e, offset):
                     pos[b].append(word_form_lemma)
         return pos
@@ -76,8 +76,8 @@ class AbstractParameter:
 
         def as_word(l_morph, r_morph, l_tag, r_tag, b, e, offset):
             word = Word(
-                '%s + %s' %  (l_morph, r_morph), l_morph, r_morph,
-                l_tag, r_tag, b + offset, e + offset,
+                '%s/%s + %s/%s' %  (l_morph, l_tag, r_morph, r_tag),
+                l_morph, r_morph, l_tag, r_tag, b + offset, e + offset,
                 get_score(l_morph, l_tag) + get_score(r_morph, r_tag), 1
             )
             return word
