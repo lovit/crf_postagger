@@ -8,7 +8,7 @@ from .lemmatizer import lemma_candidate
 from .trainer import Feature
 
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
-Word = namedtuple('Word', 'pos first_word last_word first_tag last_tag begin end word_score')
+Word = namedtuple('Word', 'pos first_word last_word first_tag last_tag begin end word_score is_compound')
 
 class AbstractParameter:
     def __init__(self, model_path=None, pos2words=None, preanalyzed_lemmas=None,
@@ -58,9 +58,9 @@ class AbstractParameter:
                 if e > n:
                     continue
                 sub = eojeol[b:e]
-                # Word(words, first_word, last_word, first_tag, last_tag, begin, end, word_score)
+                # Word(words, first_word, last_word, first_tag, last_tag, begin, end, word_score, is_compound)
                 for tag, score in self._get_pos(sub):
-                    pos[b].append(Word(sub, sub, sub, tag, tag, b+offset, e+offset, score))
+                    pos[b].append(Word(sub, sub, sub, tag, tag, b+offset, e+offset, score, 0))
                 for word_form_lemma in self._add_lemmas(sub, b, e, offset):
                     pos[b].append(word_form_lemma)
         return pos
@@ -75,10 +75,11 @@ class AbstractParameter:
             return self.pos2words.get(tag, {}).get(word, 0)
 
         def as_word(l_morph, r_morph, l_tag, r_tag, b, e, offset):
-            word = Word('%s + %s' %  (l_morph, r_morph), l_morph, r_morph,
-                        l_tag, r_tag, b + offset, e + offset,
-                        get_score(l_morph, l_tag) + get_score(r_morph, r_tag)
-                       )
+            word = Word(
+                '%s + %s' %  (l_morph, r_morph), l_morph, r_morph,
+                l_tag, r_tag, b + offset, e + offset,
+                get_score(l_morph, l_tag) + get_score(r_morph, r_tag), 1
+            )
             return word
 
         # check pre-analyzed lemmas
@@ -177,20 +178,20 @@ class HMMStyleParameter(AbstractParameter):
                 return Word(words[0], words[0], words[0], tags[0], tags[0], b, e, score)
             pos = '%s/%s + %s/%s' % (words[0], tags[0], words[1], tags[1])
             score += self.pos2words.get(tags[1], {}).get(words[1], 0)
-            return Word(pos, words[0], words[1], tags[0], tags[1], b, e, score)
+            return Word(pos, words[0], words[1], tags[0], tags[1], b, e, score, len(words)==2)
 
         sent = [[to_Word(node) for node in words] for words in sent]
 
         # add end node
-        eos_node = Word(eos, eos, None, eos, None, n_char-1, n_char, 0)
+        eos_node = Word(eos, eos, None, eos, None, n_char-1, n_char, 0, 0)
         sent.append([eos_node])
 
         # check first word position
         nonempty_first = self._get_nonempty_first(sent, n_char)
         if nonempty_first > 0:
-            # (words, first_word, last_word, first_tag, last_tag, begin, end, word_score)
+            # (words, first_word, last_word, first_tag, last_tag, begin, end, word_score, is_compound)
             word = chars[:nonempty_first]
-            sent[0] = [Word(word, word, word, unk, unk, 0, nonempty_first, 0)]
+            sent[0] = [Word(word, word, word, unk, unk, 0, nonempty_first, 0, 0)]
 
         # add link between adjacent nodes
         edges = self._link_adjacent_nodes(sent, chars, n_char)
@@ -198,7 +199,7 @@ class HMMStyleParameter(AbstractParameter):
         # add link from unk node
         edges = self._link_from_unk_nodes(edges, sent)
 
-        bos_node = Word(bos, None, bos, None, bos, 0, 0, 0)
+        bos_node = Word(bos, None, bos, None, bos, 0, 0, 0, 0)
         for word in sent[0]:
             edges.append((bos_node, word))
         edges = sorted(edges, key=lambda x:(x[0].begin, x[1].end))
