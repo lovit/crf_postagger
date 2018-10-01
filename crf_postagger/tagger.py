@@ -96,8 +96,8 @@ def _hmm_style_tagger_weight(edges, parameters, _a_syllable_penalty, _noun_prefe
         return parameters.transitions.get((f, t), 0)
 
     def get_score(from_, to_):
-        #score = get_transition(from_.last_tag, to_.first_tag) + to_.node_score
-        score = get_transition(from_.last_tag, to_.first_tag) + from_.node_score + to_.node_score
+        #score = get_transition(from_.last_tag, to_.first_tag) + to_.word_score
+        score = get_transition(from_.last_tag, to_.first_tag) + from_.word_score + to_.word_score
         if len(to_.first_word) == 1:
             score += _a_syllable_penalty
         elif to_.first_tag == 'Noun':

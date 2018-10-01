@@ -8,7 +8,7 @@ from .lemmatizer import lemma_candidate
 from .trainer import Feature
 
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
-Word = namedtuple('Word', 'pos first_word last_word first_tag last_tag begin end node_score')
+Word = namedtuple('Word', 'pos first_word last_word first_tag last_tag begin end word_score')
 
 class AbstractParameter:
     def __init__(self, model_path=None, pos2words=None, preanalyzed_lemmas=None,
@@ -181,7 +181,7 @@ class HMMStyleParameter(AbstractParameter):
         # check first word position
         nonempty_first = self._get_nonempty_first(sent, n_char)
         if nonempty_first > 0:
-            # (words, first_word, last_word, first_tag, last_tag, begin, end, node_score)
+            # (words, first_word, last_word, first_tag, last_tag, begin, end, word_score)
             word = chars[:nonempty_first]
             sent[0] = [Word(word, word, word, unk, unk, 0, nonempty_first, 0)]
 
