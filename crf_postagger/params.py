@@ -27,6 +27,7 @@ class AbstractParameter:
         if not preanalyzed_lemmas:
             preanalyzed_lemmas = {}
         self.preanalyzed_lemmas = preanalyzed_lemmas
+        self._update_dictionary_with_preanalyzed_lemmas()
 
     def __call__(self, sentence):
         return self.generate(sentence)
@@ -152,6 +153,16 @@ class AbstractParameter:
                 word = feature[5:]
                 self.pos2words[tag][word] = coef
         self.pos2words = dict(self.pos2words)
+
+    def _update_dictionary_with_preanalyzed_lemmas(self):
+        for preanalyzeds in self.preanalyzed_lemmas.values():
+            for l_morph, r_morph, l_tag, r_tag in preanalyzeds:
+                if l_tag in self.pos2words:
+                    self.pos2words[l_tag][l_morph] = max(
+                        0, self.pos2words[l_tag].get(l_morph, 0))
+                if r_tag in self.pos2words:
+                    self.pos2words[r_tag][r_morph] = max(
+                        0, self.pos2words[r_tag].get(r_morph, 0))
 
 class HMMStyleParameter(AbstractParameter):
     def __init__(self, model_path=None, pos2words=None, preanalyzed_lemmas=None,
