@@ -68,22 +68,12 @@ class HMMStyleTagger:
         path, cost = ford_list(edges, nodes, bos_node, eos_node)
 
         # post-processing
-        path = self._postprocessing(path)
+        if debug:
+            path = _debug_postprocessing(path)
+        else:
+            path = _postprocessing(path)
 
-        return path
-
-    def _postprocessing(self, path):
-        # TODO: HMM-style tagger 와 Trigram tagger 가 공유할 수 없다면 분리해야 함
-        poses = []
-        for node in path[1:-1]:
-            poses_ = node.pos.split(' + ')
-            if len(poses_) == 1:
-                poses.append((node.first_word, node.first_tag))
-            else:
-                for pos in poses_:
-                    word, tag = pos.rsplit('/', 1)
-                    poses.append((word, tag))
-        return poses
+        return [path, cost]
 
     def add_user_dictionary(self, tag, word_score):
         if not (tag in self.parameters.pos2words):
@@ -142,7 +132,22 @@ class TrigramTagger(HMMStyleTagger):
         )
 
         # post-processing
-        #paths = [self._postprocessing(path) for path in paths]
-        paths = [(path.words[1:-1], path.score) for path in paths]
+        def postprocessing(path, debug):
+            return _debug_postprocessing(path) if debug else _postprocessing(path)
+
+        paths = [(postprocessing(path, debug), path.score) for path in paths]
 
         return paths
+
+########################################
+# common functions
+def _debug_postprocessing(path):
+    return [(word.pos, word.begin, word.end, word.word_score) for word in path.words[1:-1]]
+
+def _postprocessing(path):
+    poses = []
+    for word in path.words[1:-1]:
+        poses.append((word.first_word, word.first_tag))
+        if word.is_compound:
+            poses.append((word.last_word, word.last_tag))
+    return poses
