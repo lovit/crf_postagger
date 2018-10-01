@@ -48,7 +48,7 @@ class HMMStyleTagger:
 
         return score
 
-    def tag(self, sentence, debug=False):
+    def tag(self, sentence, flatten=False):
         # generate nodes and edges
         edges, bos_node, eos_node = self.parameters.generate(sentence)
         nodes = {node for edge in edges for node in edge[:2]}
@@ -68,10 +68,10 @@ class HMMStyleTagger:
         words, cost = ford_list(edges, nodes, bos_node, eos_node)
 
         # post-processing
-        if debug:
-            words = _debug_postprocessing(words)
+        if flatten:
+            words = _remain_only_pos(words)
         else:
-            words = _postprocessing(words)
+            words = _remain_details(words)
 
         return [words, cost]
 
@@ -119,7 +119,7 @@ class TrigramTagger(HMMStyleTagger):
         self._noun_preference = 0.5
         self._longer_noun_preference = 0.2
 
-    def tag(self, sentence, debug=False, k=5):
+    def tag(self, sentence, flatten=True, k=5):
         # generate nodes and edges
         begin_index = self.parameters.generate(sentence)
 
@@ -132,19 +132,19 @@ class TrigramTagger(HMMStyleTagger):
         )
 
         # post-processing
-        def postprocessing(words, debug):
-            return _debug_postprocessing(words) if debug else _postprocessing(words)
+        def postprocessing(words, flatten):
+            return _remain_only_pos(words) if flatten else _remain_details(words)
 
-        top_words = [(postprocessing(words, debug), words.score) for words in top_words]
+        top_words = [(postprocessing(words, flatten), words.score) for words in top_words]
 
         return top_words
 
 ########################################
 # common functions
-def _debug_postprocessing(words):
+def _remain_details(words):
     return [(word.pos, word.begin, word.end, word.word_score) for word in words.words[1:-1]]
 
-def _postprocessing(words):
+def _remain_only_pos(words):
     poses = []
     for word in words.words[1:-1]:
         poses.append((word.first_word, word.first_tag))
