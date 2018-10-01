@@ -58,21 +58,28 @@ class AbstractParameter:
                 if e > n:
                     continue
                 sub = eojeol[b:e]
-                for tag in self._get_pos(sub):
-                    pos[b].append((sub, tag, b+offset, e+offset))
-                for lemma_node in self._add_lemmas(sub, r, b, e, offset):
-                    pos[b].append(lemma_node)
+                # Word(words, first_word, last_word, first_tag, last_tag, begin, end, word_score)
+                for tag, score in self._get_pos(sub):
+                    pos[b].append(Word(sub, sub, sub, tag, tag, b+offset, e+offset, score))
+                for word_form_lemma in self._add_lemmas(sub, b, e, offset):
+                    pos[b].append(word_form_lemma)
         return pos
 
     def _get_pos(self, word):
-        return tuple(tag for tag, words in self.pos2words.items() if word in words)
+        # return (word, word score)
+        return tuple((tag, words[word]) for tag, words in self.pos2words.items() if word in words)
 
-    def _add_lemmas(self, sub, r, b, e, offset):
+    def _add_lemmas(self, sub, b, e, offset):
 
-        def as_node(l_morph, r_morph, l_tag, r_tag, b, e, offset):
-            return ('%s + %s' %  (l_morph, r_morph),
-                    '%s + %s' % (l_tag, r_tag),
-                    b + offset, e + offset)
+        def get_score(word, tag):
+            return self.pos2words.get(tag, {}).get(word, 0)
+
+        def as_word(l_morph, r_morph, l_tag, r_tag, b, e, offset):
+            word = Word('%s + %s' %  (l_morph, r_morph), l_morph, r_morph,
+                        l_tag, r_tag, b + offset, e + offset,
+                        get_score(l_morph, l_tag) + get_score(r_morph, r_tag)
+                       )
+            return word
 
         # check pre-analyzed lemmas
         lemmas = self.preanalyzed_lemmas.get(sub, [])
@@ -87,7 +94,7 @@ class AbstractParameter:
                     continue
 
         # formatting
-        lemmas = [as_node(l_morph, r_morph, l_tag, r_tag, b, e, offset)
+        lemmas = [as_word(l_morph, r_morph, l_tag, r_tag, b, e, offset)
                   for l_morph, r_morph, l_tag, r_tag in lemmas]
 
         return lemmas
