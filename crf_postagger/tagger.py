@@ -23,7 +23,7 @@ class HMMStyleTagger:
         self._a_syllable_penalty = -0.7
         self._noun_preference = 1
 
-    def score(self, wordpos_sentence, debug=False):
+    def evaluate(self, wordpos_sentence, debug=False):
 
         # feature transform
         sentence_, tags = self.feature_transformer(wordpos_sentence)
