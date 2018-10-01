@@ -1,12 +1,12 @@
 from collections import namedtuple
-from .common import bos, eos, unk
+from .common import bos, eos, unk, BOS
 
 Poses = namedtuple('Poses', 'poses score')
 
 class Beam:
     def __init__(self, k):
         self.k = k
-        self.beam = [[Poses(((bos, bos, 0, 0),), 0)]]
+        self.beam = [[Poses((BOS,), 0)]]
 
     def __getitem__(self, index):
         return self.beam[index]

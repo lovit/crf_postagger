@@ -1,14 +1,12 @@
 from collections import defaultdict
-from collections import namedtuple
 import re
 import json
 
-from .common import bos, eos, unk
+from .common import bos, eos, unk, Word
 from .lemmatizer import lemma_candidate
 from .trainer import Feature
 
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
-Word = namedtuple('Word', 'pos first_word last_word first_tag last_tag begin end word_score is_compound')
 
 class AbstractParameter:
     def __init__(self, model_path=None, pos2words=None, preanalyzed_lemmas=None,
