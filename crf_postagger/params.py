@@ -2,7 +2,7 @@ from collections import defaultdict
 import re
 import json
 
-from .common import bos, eos, unk, Word
+from .common import bos, eos, unk, Eojeol
 from .lemmatizer import lemma_candidate
 from .trainer import Feature
 
@@ -57,9 +57,9 @@ class AbstractParameter:
                 if e > n:
                     continue
                 sub = eojeol[b:e]
-                # Word(words, first_word, last_word, first_tag, last_tag, begin, end, word_score, is_compound)
+                # Eojeol(pos, first_word, last_word, first_tag, last_tag, begin, end, eojeol_score, is_compound)
                 for tag, score in self._get_pos(sub):
-                    pos[b].append(Word(sub+'/'+tag, sub, sub, tag, tag, b+offset, e+offset, score, 0))
+                    pos[b].append(Eojeol(sub+'/'+tag, sub, sub, tag, tag, b+offset, e+offset, score, 0))
                 for word_form_lemma in self._add_lemmas(sub, b, e, offset):
                     pos[b].append(word_form_lemma)
         return pos
@@ -73,13 +73,13 @@ class AbstractParameter:
         def get_score(word, tag):
             return self.pos2words.get(tag, {}).get(word, 0)
 
-        def as_word(l_morph, r_morph, l_tag, r_tag, b, e, offset):
-            word = Word(
+        def as_eojeol(l_morph, r_morph, l_tag, r_tag, b, e, offset):
+            eojeol = Eojeol(
                 '%s/%s + %s/%s' %  (l_morph, l_tag, r_morph, r_tag),
                 l_morph, r_morph, l_tag, r_tag, b + offset, e + offset,
                 get_score(l_morph, l_tag) + get_score(r_morph, r_tag), 1
             )
-            return word
+            return eojeol
 
         # check pre-analyzed lemmas
         lemmas = self.preanalyzed_eojeols.get(sub, [])
@@ -94,7 +94,7 @@ class AbstractParameter:
                     continue
 
         # formatting
-        lemmas = [as_word(l_morph, r_morph, l_tag, r_tag, b, e, offset)
+        lemmas = [as_eojeol(l_morph, r_morph, l_tag, r_tag, b, e, offset)
                   for l_morph, r_morph, l_tag, r_tag in lemmas]
 
         return lemmas
@@ -178,15 +178,15 @@ class HMMStyleParameter(AbstractParameter):
         n_char = len(sent) + 1
 
         # add end node
-        eos_node = Word(eos, eos, None, eos, None, n_char-1, n_char, 0, 0)
+        eos_node = Eojeol(eos, eos, None, eos, None, n_char-1, n_char, 0, 0)
         sent.append([eos_node])
 
         # check first word position
         nonempty_first = self._get_nonempty_first(sent, n_char)
         if nonempty_first > 0:
-            # (words, first_word, last_word, first_tag, last_tag, begin, end, word_score, is_compound)
+            # (pos, first_word, last_word, first_tag, last_tag, begin, end, eojeol_score, is_compound)
             word = chars[:nonempty_first]
-            sent[0] = [Word(word, word, word, unk, unk, 0, nonempty_first, 0, 0)]
+            sent[0] = [Eojeol(word, word, word, unk, unk, 0, nonempty_first, 0, 0)]
 
         # add link between adjacent nodes
         edges = self._link_adjacent_nodes(sent, chars, n_char)
@@ -194,7 +194,7 @@ class HMMStyleParameter(AbstractParameter):
         # add link from unk node
         edges = self._link_from_unk_nodes(edges, sent)
 
-        bos_node = Word(bos, None, bos, None, bos, 0, 0, 0, 0)
+        bos_node = Eojeol(bos, None, bos, None, bos, 0, 0, 0, 0)
         for word in sent[0]:
             edges.append((bos_node, word))
         edges = sorted(edges, key=lambda x:(x[0].begin, x[1].end))
@@ -214,7 +214,7 @@ class HMMStyleParameter(AbstractParameter):
                 if not sent[word.end]:
                     unk_end = self._get_nonempty_first(sent, n_char, word.end)
                     unk_word = chars[word.end:unk_end]
-                    unk_node = Word(unk_word, unk_word, unk_word, unk, unk, word.end, unk_end, 0)
+                    unk_node = Eojeol(unk_word, unk_word, unk_word, unk, unk, word.end, unk_end, 0)
                     edges.append((word, unk_node))
                 for adjacent in sent[word.end]:
                     edges.append((word, adjacent))

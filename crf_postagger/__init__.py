@@ -1,4 +1,4 @@
-from .common import bos, eos, unk, Word, BOS, Words
+from .common import bos, eos, unk, Eojeol, BOS, Eojeols
 from .lemmatizer import lemma_candidate
 from .params import AbstractParameter
 from .params import HMMStyleParameter

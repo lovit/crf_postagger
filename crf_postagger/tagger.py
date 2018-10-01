@@ -1,5 +1,5 @@
 from .beam import beam_search
-from .common import bos, eos, unk, Words
+from .common import bos, eos, unk, Eojeols
 from .transformer import *
 from .path import ford_list
 from .utils import _to_end_index
@@ -65,18 +65,18 @@ class HMMStyleTagger:
                 print('score: {}\n'.format(score))
 
         # find optimal path
-        list_of_words, cost = ford_list(edges, nodes, bos_node, eos_node)
+        list_of_eojeols, cost = ford_list(edges, nodes, bos_node, eos_node)
 
-        # wrapper list of words to Words
-        words = Words(list_of_words, cost)
+        # wrapper list of words to Eojeols
+        eojeols = Eojeols(list_of_eojeols, cost)
 
         # post-processing
         if flatten:
-            words = _remain_only_pos(words)
+            poses = _remain_only_pos(eojeols)
         else:
-            words = _remain_details(words)
+            poses = _remain_details(eojeols)
 
-        return [words, cost]
+        return [poses, cost]
 
     def add_user_dictionary(self, tag, word_score):
         if not (tag in self.parameters.pos2words):
@@ -89,8 +89,8 @@ def _hmm_style_tagger_weight(edges, parameters, _a_syllable_penalty, _noun_prefe
         return parameters.transitions.get((f, t), 0)
 
     def get_score(from_, to_):
-        #score = get_transition(from_.last_tag, to_.first_tag) + to_.word_score
-        score = get_transition(from_.last_tag, to_.first_tag) + from_.word_score + to_.word_score
+        #score = get_transition(from_.last_tag, to_.first_tag) + to_.eojeol_score
+        score = get_transition(from_.last_tag, to_.first_tag) + from_.eojeol_score + to_.eojeol_score
         if len(to_.first_word) == 1:
             score += _a_syllable_penalty
         elif to_.first_tag == 'Noun':
@@ -128,29 +128,29 @@ class TrigramTagger(HMMStyleTagger):
 
         # find optimal path
         chars = sentence.replace(' ', '')
-        top_words = beam_search(
+        top_eojeols = beam_search(
             begin_index, k, chars, self.parameters,
             self._a_syllable_penalty, self._noun_preference,
             self._longer_noun_preference
         )
 
         # post-processing
-        def postprocessing(words, flatten):
-            return _remain_only_pos(words) if flatten else _remain_details(words)
+        def postprocessing(eojeols, flatten):
+            return _remain_only_pos(eojeols) if flatten else _remain_details(eojeols)
 
-        top_words = [(postprocessing(words, flatten), words.score) for words in top_words]
+        top_poses = [(postprocessing(eojeols, flatten), eojeols.score) for eojeols in top_eojeols]
 
-        return top_words
+        return top_poses
 
 ########################################
 # common functions
-def _remain_details(words):
-    return [(word.pos, word.begin, word.end, word.word_score) for word in words.words[1:-1]]
+def _remain_details(eojeols):
+    return [(eojeol.pos, eojeol.begin, eojeol.end, eojeol.eojeol_score) for eojeol in eojeols.eojeols[1:-1]]
 
-def _remain_only_pos(words):
+def _remain_only_pos(eojeols):
     poses = []
-    for word in words.words[1:-1]:
-        poses.append((word.first_word, word.first_tag))
-        if word.is_compound:
-            poses.append((word.last_word, word.last_tag))
+    for eojeol in eojeols.eojeols[1:-1]:
+        poses.append((eojeol.first_word, eojeol.first_tag))
+        if eojeol.is_compound:
+            poses.append((eojeol.last_word, eojeol.last_tag))
     return poses
