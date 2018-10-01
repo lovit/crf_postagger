@@ -1,5 +1,5 @@
 from collections import namedtuple
-from .common import bos, eos, unk, BOS
+from .common import bos, eos, unk, BOS, Word
 
 Words = namedtuple('Words', 'words score')
 
@@ -25,12 +25,12 @@ def beam_search(begin_index, k, chars, params,
 
     def appending(immatures, appending_words, matures):
         for immature in immatures:
-            for pos in appending_poses:
-                poses = (*immature.poses, pos)
+            for word in appending_words:
+                words = (*immature.words, word)
                 score = _trigram_beam_search_cumulate_score(
-                    immature, pos, params, a_syllable_penalty,
+                    immature, word, params, a_syllable_penalty,
                     noun_preference, longer_noun_preference)
-                matures.append(Words(poses, score))
+                matures.append(Words(words, score))
         return matures
 
     for e in range(1, len_sent + 1):
@@ -40,56 +40,58 @@ def beam_search(begin_index, k, chars, params,
             # prepare previous sequence
             immatures = beam[b]
 
-            # prepare appending poses
-            appending_poses = [pos for pos in begin_index[b] if pos[3] == e]
+            # prepare appending words
+            appending_words = [word for word in begin_index[b] if word.end == e]
 
-            if not appending_poses:
-                appending_poses = [(chars[b:e], unk, b, e)]
+            if not appending_words:
+                sub = chars[b:e]
+                appending_words = [Word(sub+'/'+unk, sub, sub, unk, unk, b, e, 0, 0)]
 
             # appending
-            matures = appending(immatures, appending_poses, matures)
+            matures = appending(immatures, appending_words, matures)
 
         # append beam and prune
         beam.append(matures)
 
     # for eos scoring
-    matures = appending(beam[-1], [(eos, eos, len_sent, len_sent)], [])
+    EOS = Word('', eos, '', eos, '', len_sent, len_sent, 0, 0)
+    matures = appending(beam[-1], [EOS], [])
     beam.append(matures)
 
     return beam[-1]
 
-def _trigram_beam_search_cumulate_score(immature, pos, params, a_syllable_penalty,
+def _trigram_beam_search_cumulate_score(immature, word, params, a_syllable_penalty,
     noun_preference, longer_noun_preference):
 
-    word, tag = pos[:2]
-    word_prev, tag_prev = immature.poses[-1][:2]
-    len_word = len(word)
+    prev_word = immature.words[-1]
+    len_word = word.end - word.begin
 
-    score = immature.score
+    score = immature.score + word.word_score
 
     # preference & penalty
-    score += (a_syllable_penalty * (1 + noun_preference * (tag == 'Noun')))  if len_word == 1 else 0
-    score += noun_preference if (tag == 'Noun' and len_word > 1) else 0
-    score += longer_noun_preference * (len(word) - 1) if tag == 'Noun' else 0
+    score += (a_syllable_penalty * (1 + noun_preference * (word.first_tag == 'Noun')))  if len_word == 1 else 0
+    score += noun_preference if (word.first_tag == 'Noun' and len_word > 1) else 0
+    score += longer_noun_preference * (len_word - 1) if word.first_tag == 'Noun' else 0
 
     # transition score
-    score += params.transitions.get((tag_prev, tag), 0)
+    score += params.transitions.get((prev_word.last_tag, word.first_tag), 0)
 
     # word feature
-    score += params.pos2words.get(tag, {}).get(word, 0)
+    # word score are already cumulated
+    # score += params.pos2words.get(tag, {}).get(word, 0)
 
     # previous features
-    score += params.previous_1X0.get(tag, {}).get((word_prev, word), 0)
-    score += params.previous_X0_1Y.get(tag, {}).get((word, tag_prev), 0)
+    score += params.previous_1X0.get(word.first_tag, {}).get((prev_word.last_word, word.first_word), 0)
+    score += params.previous_X0_1Y.get(word.first_tag, {}).get((word.first_word, prev_word.last_tag), 0)
 
     # successive features (for previous pos)
-    score += params.successive_X01.get(tag_prev, {}).get((word_prev, word), 0)
-    score += params.successive_X01_Y1.get(tag_prev, {}).get((word_prev, word, tag), 0)
+    score += params.successive_X01.get(prev_word.last_tag, {}).get((prev_word.last_word, word.first_word), 0)
+    score += params.successive_X01_Y1.get(prev_word.last_tag, {}).get((prev_word.last_word, word.first_word, word.first_tag), 0)
 
     # bothside features (for previous pos)
-    if len(immature.poses) >= 2:
-        word_prev2, tag_prev2 = immature.poses[-2][:2]
-        score += params.bothside_1X1.get(tag_prev, {}).get((word_prev2, word), 0)
-        score += params.bothside_1X01.get(tag_prev, {}).get((word_prev2, word_prev, word), 0)
+    if len(immature.words) >= 2:
+        prev2_word = immature.words[-2]
+        score += params.bothside_1X1.get(prev_word.first_tag, {}).get((prev2_word.last_word, word.first_word), 0)
+        score += params.bothside_1X01.get(prev_word.first_tag, {}).get((prev2_word.last_word, prev_word.first_word, word.first_word), 0)
 
     return score

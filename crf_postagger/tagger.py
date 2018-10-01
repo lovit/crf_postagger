@@ -143,6 +143,6 @@ class TrigramTagger(HMMStyleTagger):
 
         # post-processing
         #paths = [self._postprocessing(path) for path in paths]
-        paths = [(path.poses[1:-1], path.score) for path in paths]
+        paths = [(path.words[1:-1], path.score) for path in paths]
 
         return paths
