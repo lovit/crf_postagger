@@ -9,7 +9,7 @@ from .trainer import Feature
 doublespace_pattern = re.compile(u'\s+', re.UNICODE)
 
 class AbstractParameter:
-    def __init__(self, model_path=None, pos2words=None, preanalyzed_lemmas=None,
+    def __init__(self, model_path=None, pos2words=None, preanalyzed_eojeols=None,
         max_word_len=0, parameter_marker=' -> '):
 
         self.pos2words = pos2words
@@ -24,10 +24,10 @@ class AbstractParameter:
         if self.max_word_len == 0:
             self._check_max_word_len()
 
-        if not preanalyzed_lemmas:
-            preanalyzed_lemmas = {}
-        self.preanalyzed_lemmas = preanalyzed_lemmas
-        self._update_dictionary_with_preanalyzed_lemmas()
+        if not preanalyzed_eojeols:
+            preanalyzed_eojeols = {}
+        self.preanalyzed_eojeols = preanalyzed_eojeols
+        self._update_dictionary_with_preanalyzed_eojeols()
 
     def __call__(self, sentence):
         return self.generate(sentence)
@@ -82,7 +82,7 @@ class AbstractParameter:
             return word
 
         # check pre-analyzed lemmas
-        lemmas = self.preanalyzed_lemmas.get(sub, [])
+        lemmas = self.preanalyzed_eojeols.get(sub, [])
 
         # if sub is unseen string
         if not lemmas:
@@ -154,8 +154,8 @@ class AbstractParameter:
                 self.pos2words[tag][word] = coef
         self.pos2words = dict(self.pos2words)
 
-    def _update_dictionary_with_preanalyzed_lemmas(self):
-        for preanalyzeds in self.preanalyzed_lemmas.values():
+    def _update_dictionary_with_preanalyzed_eojeols(self):
+        for preanalyzeds in self.preanalyzed_eojeols.values():
             for l_morph, r_morph, l_tag, r_tag in preanalyzeds:
                 if l_tag in self.pos2words:
                     self.pos2words[l_tag][l_morph] = max(
@@ -165,11 +165,11 @@ class AbstractParameter:
                         0, self.pos2words[r_tag].get(r_morph, 0))
 
 class HMMStyleParameter(AbstractParameter):
-    def __init__(self, model_path=None, pos2words=None, preanalyzed_lemmas=None,
+    def __init__(self, model_path=None, pos2words=None, preanalyzed_eojeols=None,
         max_word_len=0, parameter_marker=' -> '):
 
         super().__init__(model_path, pos2words,
-            preanalyzed_lemmas, max_word_len, parameter_marker)
+            preanalyzed_eojeols, max_word_len, parameter_marker)
 
     def generate(self, sentence):
         # prepare lookup list
@@ -228,11 +228,11 @@ class HMMStyleParameter(AbstractParameter):
         return edges
 
 class TrigramParameter(AbstractParameter):
-    def __init__(self, model_path=None, pos2words=None, preanalyzed_lemmas=None,
+    def __init__(self, model_path=None, pos2words=None, preanalyzed_eojeols=None,
         max_word_len=0, parameter_marker=' -> '):
 
         super().__init__(model_path, pos2words,
-            preanalyzed_lemmas, max_word_len, parameter_marker)
+            preanalyzed_eojeols, max_word_len, parameter_marker)
 
         self._separate_features()
 
