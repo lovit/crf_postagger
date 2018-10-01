@@ -105,6 +105,12 @@ class AbstractParameter:
             for feature, coef in model['state_features'].items()
         }
 
+        # weight normalize. [-1, 1]
+        max_value = max(abs(coef) for coef in self.transitions.values())
+        max_value = max(max_value, max(abs(coef) for coef in self.state_features.values()))
+        self.transitions = {key:coef/max_value for key, coef in self.transitions.items()}
+        self.state_features = {key:coef/max_value for key, coef in self.state_features.items()}
+
         # get idx2features
         self.idx2feature = model['idx2feature']
 
