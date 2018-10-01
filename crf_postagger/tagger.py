@@ -1,5 +1,5 @@
 from .beam import beam_search
-from .common import bos, eos, unk
+from .common import bos, eos, unk, Words
 from .transformer import *
 from .path import ford_list
 from .utils import _to_end_index
@@ -21,7 +21,7 @@ class HMMStyleTagger:
         self.verbose = verbose
 
         self._a_syllable_penalty = -0.7
-        self._noun_preference = 1
+        self._noun_preference = 0.05
 
     def evaluate(self, wordpos_sentence, debug=False):
 
@@ -65,7 +65,10 @@ class HMMStyleTagger:
                 print('score: {}\n'.format(score))
 
         # find optimal path
-        words, cost = ford_list(edges, nodes, bos_node, eos_node)
+        list_of_words, cost = ford_list(edges, nodes, bos_node, eos_node)
+
+        # wrapper list of words to Words
+        words = Words(list_of_words, cost)
 
         # post-processing
         if flatten:
