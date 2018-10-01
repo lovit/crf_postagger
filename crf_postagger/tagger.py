@@ -126,8 +126,8 @@ class TrigramTagger(HMMStyleTagger):
         self.verbose = verbose
 
         self._a_syllable_penalty = -0.3
-        self._noun_preference = 5
-        self._longer_noun_preference = 2
+        self._noun_preference = 0.5
+        self._longer_noun_preference = 0.2
 
     def tag(self, sentence, debug=False, k=5):
         # generate nodes and edges
