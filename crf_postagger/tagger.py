@@ -20,8 +20,8 @@ class HMMStyleTagger:
         self.feature_transformer = feature_transformer
         self.verbose = verbose
 
-        self._a_syllable_penalty = -7
-        self._noun_preference = 10
+        self._a_syllable_penalty = -0.7
+        self._noun_preference = 1
 
     def score(self, wordpos_sentence, debug=False):
 
@@ -125,7 +125,7 @@ class TrigramTagger(HMMStyleTagger):
         self.feature_transformer = feature_transformer
         self.verbose = verbose
 
-        self._a_syllable_penalty = -3
+        self._a_syllable_penalty = -0.3
         self._noun_preference = 5
         self._longer_noun_preference = 2
 
