@@ -63,12 +63,13 @@ def _trigram_beam_search_cumulate_score(immature, pos, params, a_syllable_penalt
 
     word, tag = pos[:2]
     word_prev, tag_prev = immature.poses[-1][:2]
+    len_word = len(word)
 
     score = immature.score
 
     # preference & penalty
-    score += (a_syllable_penalty * (1 + noun_preference * (tag == 'Noun')))  if len(word) == 1 else 0
-    score += noun_preference if tag == 'Noun' else 0
+    score += (a_syllable_penalty * (1 + noun_preference * (tag == 'Noun')))  if len_word == 1 else 0
+    score += noun_preference if (tag == 'Noun' and len_word > 1) else 0
     score += longer_noun_preference * (len(word) - 1) if tag == 'Noun' else 0
 
     # transition score
