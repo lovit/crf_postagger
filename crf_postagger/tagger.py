@@ -48,7 +48,7 @@ class HMMStyleTagger:
 
         return score
 
-    def tag(self, sentence, flatten=False):
+    def tag(self, sentence, flatten=True):
         # generate nodes and edges
         edges, bos_node, eos_node = self.parameters.generate(sentence)
         nodes = {node for edge in edges for node in edge[:2]}
