@@ -75,19 +75,22 @@ class AbstractParameter:
                     b + offset, e + offset)
 
         # check pre-analyzed lemmas
-        preanalyzeds = self.preanalyzed_lemmas.get(sub, None)
-        if preanalyzeds:
-            for l_morph, r_morph, l_tag, r_tag in preanalyzeds:
-                yield as_node(l_morph, r_morph, l_tag, r_tag, b, e, offset)
+        lemmas = self.preanalyzed_lemmas.get(sub, [])
+
         # if sub is unseen string
-        else:
+        if not lemmas:
             for i in range(1, min(self.max_word_len, len(sub)) + 1):
                 try:
-                    for l_morph, r_morph, l_tag, r_tag in self._lemmatize(sub, i):
-                        yield as_node(l_morph, r_morph, l_tag, r_tag, b, e, offset)
+                    for lemma in self._lemmatize(sub, i):
+                        lemmas.append(lemma)
                 except Exception as e:
-                    #print(e)
                     continue
+
+        # formatting
+        lemmas = [as_node(l_morph, r_morph, l_tag, r_tag, b, e, offset)
+                  for l_morph, r_morph, l_tag, r_tag in lemmas]
+
+        return lemmas
 
     def _lemmatize(self, word, i):
         l = word[:i]
