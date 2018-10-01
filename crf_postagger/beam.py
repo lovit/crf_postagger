@@ -1,7 +1,4 @@
-from collections import namedtuple
-from .common import bos, eos, unk, BOS, Word
-
-Words = namedtuple('Words', 'words score')
+from .common import bos, eos, unk, BOS, Word, Words
 
 class Beam:
     def __init__(self, k):
