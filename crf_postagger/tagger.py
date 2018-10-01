@@ -65,15 +65,15 @@ class HMMStyleTagger:
                 print('score: {}\n'.format(score))
 
         # find optimal path
-        path, cost = ford_list(edges, nodes, bos_node, eos_node)
+        words, cost = ford_list(edges, nodes, bos_node, eos_node)
 
         # post-processing
         if debug:
-            path = _debug_postprocessing(path)
+            words = _debug_postprocessing(words)
         else:
-            path = _postprocessing(path)
+            words = _postprocessing(words)
 
-        return [path, cost]
+        return [words, cost]
 
     def add_user_dictionary(self, tag, word_score):
         if not (tag in self.parameters.pos2words):
@@ -125,28 +125,28 @@ class TrigramTagger(HMMStyleTagger):
 
         # find optimal path
         chars = sentence.replace(' ', '')
-        paths = beam_search(
+        top_words = beam_search(
             begin_index, k, chars, self.parameters,
             self._a_syllable_penalty, self._noun_preference,
             self._longer_noun_preference
         )
 
         # post-processing
-        def postprocessing(path, debug):
-            return _debug_postprocessing(path) if debug else _postprocessing(path)
+        def postprocessing(words, debug):
+            return _debug_postprocessing(words) if debug else _postprocessing(words)
 
-        paths = [(postprocessing(path, debug), path.score) for path in paths]
+        top_words = [(postprocessing(words, debug), words.score) for words in top_words]
 
-        return paths
+        return top_words
 
 ########################################
 # common functions
-def _debug_postprocessing(path):
-    return [(word.pos, word.begin, word.end, word.word_score) for word in path.words[1:-1]]
+def _debug_postprocessing(words):
+    return [(word.pos, word.begin, word.end, word.word_score) for word in words.words[1:-1]]
 
-def _postprocessing(path):
+def _postprocessing(words):
     poses = []
-    for word in path.words[1:-1]:
+    for word in words.words[1:-1]:
         poses.append((word.first_word, word.first_tag))
         if word.is_compound:
             poses.append((word.last_word, word.last_tag))
