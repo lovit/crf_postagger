@@ -73,7 +73,7 @@ class HMMStyleTagger:
         return path
 
     def _postprocessing(self, path):
-        # TODO: common unitfy or separate
+        # TODO: HMM-style tagger 와 Trigram tagger 가 공유할 수 없다면 분리해야 함
         poses = []
         for node in path[1:-1]:
             poses_ = node.pos.split(' + ')
