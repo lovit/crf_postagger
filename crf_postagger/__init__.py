@@ -3,7 +3,6 @@ from .lemmatizer import lemma_candidate
 from .params import AbstractParameter
 from .params import HMMStyleParameter
 from .params import TrigramParameter
-from .path import ford_list
 from .tagger import HMMStyleTagger
 from .tagger import TrigramTagger
 from .trainer import Trainer
