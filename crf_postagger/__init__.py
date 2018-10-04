@@ -13,3 +13,5 @@ from .transformer import HMMStyleFeatureTransformer
 from .utils import Corpus
 from .utils import check_dirs
 from .utils import get_process_memory
+
+from . import _hmm_style
