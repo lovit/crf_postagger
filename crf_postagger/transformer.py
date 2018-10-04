@@ -1,5 +1,5 @@
 from pprint import pprint
-from .common import bos, eos
+from .utils import bos, eos
 
 class AbstractFeatureTransformer:
 

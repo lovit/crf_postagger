@@ -1,4 +1,4 @@
-from .common import bos, eos, unk, Eojeols
+from .utils import bos, eos, unk, Eojeols
 from .transformer import *
 
 class AbstractTagger:

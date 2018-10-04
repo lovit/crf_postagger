@@ -2,7 +2,7 @@ from collections import defaultdict
 import re
 import json
 
-from .common import bos, eos, unk, Eojeol
+from .utils import bos, eos, unk, Eojeol
 from .lemmatizer import lemma_candidate
 from .trainer import Feature
 
