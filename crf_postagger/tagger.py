@@ -1,7 +1,6 @@
 from .beam import beam_search
 from .common import bos, eos, unk, Eojeols
 from .transformer import *
-from .utils import _to_end_index
 from ._hmm_style import _hmm_style_tagger_weight
 from ._hmm_style import ford_list
 
@@ -142,7 +141,7 @@ class TrigramTagger(AbstractTagger):
             if flatten:
                 return self._remain_only_pos(eojeols)
             else:
-                self._remain_details(eojeols)
+                return self._remain_details(eojeols)
 
         top_poses = [(postprocessing(eojeols, flatten), eojeols.score)
                      for eojeols in top_eojeols]
