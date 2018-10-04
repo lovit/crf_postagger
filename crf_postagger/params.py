@@ -58,13 +58,13 @@ class AbstractParameter:
                     continue
                 sub = eojeol[b:e]
                 # Eojeol(pos, first_word, last_word, first_tag, last_tag, begin, end, eojeol_score, is_compound)
-                for tag, score in self._get_pos(sub):
+                for tag, score in self._get_tag_score(sub):
                     pos[b].append(Eojeol(sub+'/'+tag, sub, sub, tag, tag, b+offset, e+offset, score, 0))
                 for word_form_lemma in self._add_lemmas(sub, b, e, offset):
                     pos[b].append(word_form_lemma)
         return pos
 
-    def _get_pos(self, word):
+    def _get_tag_score(self, word):
         # return (word, word score)
         return tuple((tag, words[word]) for tag, words in self.pos2words.items() if word in words)
 
