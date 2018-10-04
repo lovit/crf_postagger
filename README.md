@@ -306,8 +306,5 @@ JSON 파일에는 다음의 정보가 포함되어 있습니다.
 
 state_features 은 {feature --> tag : coefficient} 형식의 dict 이며 transitions 은 {'Noun -> Josa': prob} 형식의 dict 입니다. 
 
-## TODO
-
-unknown word 에 대한 inference 기능은 구현하지 않았습니다.
 
 [crf_tagger_post]: https://lovit.github.io/nlp/2018/09/13/crf_based_tagger/
