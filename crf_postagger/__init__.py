@@ -1,7 +1,6 @@
 from .common import bos, eos, unk, Eojeol, BOS, Eojeols
 from .lemmatizer import lemma_candidate
 from .params import AbstractParameter
-from .params import HMMStyleParameter
 from .params import TrigramParameter
 from .tagger import AbstractTagger
 from .tagger import TrigramTagger
