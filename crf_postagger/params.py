@@ -85,6 +85,8 @@ class AbstractParameter:
         return [
             ('Noun', self.unknown_penalty),
             ('Adverb', self.unknown_penalty),
+            ('Verb', self.unknown_penalty),
+            ('Adjective', self.unknown_penalty),
             ('Exclamation', self.unknown_penalty),
             (unk, self.unknown_penalty)
         ]
