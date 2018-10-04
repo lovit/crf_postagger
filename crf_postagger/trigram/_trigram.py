@@ -20,6 +20,7 @@ class TrigramTagger(AbstractTagger):
         self._a_syllable_penalty = -0.3
         self._noun_preference = 0.5
         self._longer_noun_preference = 0.2
+        self._unknown_penalty = -0.01
 
         self._beam_score_functions = [
             _preference_penalty,
@@ -35,7 +36,7 @@ class TrigramTagger(AbstractTagger):
         chars = sentence.replace(' ', '')
         top_eojeols = beam_search(
             begin_index, beam_size, chars, self.parameters,
-            self._beam_score_functions,
+            self._beam_score_functions, self._unknown_penalty,
             a_syllable_penalty = self._a_syllable_penalty,
             noun_preference = self._noun_preference,
             longer_noun_preference = self._longer_noun_preference

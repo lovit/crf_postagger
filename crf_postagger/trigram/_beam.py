@@ -13,7 +13,8 @@ class Beam:
         candidates = sorted(candidates, key=lambda x:-x.score)[:self.k]
         self.beam += [candidates]
 
-def beam_search(begin_index, k, chars, params, score_functions, **kwargs):
+def beam_search(begin_index, k, chars, params, score_functions,
+                unknown_penalty, **kwargs):
 
     len_sent = len(chars)
     max_len = params.max_word_len
@@ -41,7 +42,7 @@ def beam_search(begin_index, k, chars, params, score_functions, **kwargs):
 
             if not appending_eojeols:
                 sub = chars[b:e]
-                appending_eojeols = [Eojeol(sub+'/'+unk, sub, sub, unk, unk, b, e, 0, 0)]
+                appending_eojeols = [Eojeol(sub+'/'+unk, sub, sub, unk, unk, b, e, unknown_penalty, 0)]
 
             # appending
             matures = appending(immatures, appending_eojeols, matures)
