@@ -20,17 +20,17 @@ class TrigramTagger(AbstractTagger):
         self._a_syllable_penalty = -0.3
         self._noun_preference = 0.5
         self._longer_noun_preference = 0.2
-        self._unknown_penalty = -0.01
 
         self._beam_score_functions = [
             _preference_penalty,
             _trigram_score
         ]
         super().__init__(parameters, feature_transformer, verbose)
+        self._unknown_penalty = self.parameters.unknown_penalty
 
-    def tag(self, sentence, flatten=True, beam_size=5):
+    def tag(self, sentence, flatten=True, guess_tag=False, beam_size=5):
         # generate nodes and edges
-        begin_index = self.parameters.generate(sentence)
+        begin_index = self.parameters.generate(sentence, guess_tag)
 
         # find optimal path
         chars = sentence.replace(' ', '')
@@ -77,10 +77,10 @@ class TrigramFeatureTransformer(AbstractFeatureTransformer):
 
 class TrigramParameter(AbstractParameter):
     def __init__(self, model_path=None, pos2words=None, preanalyzed_eojeols=None,
-        max_word_len=0, parameter_marker=' -> '):
+        max_word_len=0, parameter_marker=' -> ', unknown_penalty=-0.1):
 
-        super().__init__(model_path, pos2words,
-            preanalyzed_eojeols, max_word_len, parameter_marker)
+        super().__init__(model_path, pos2words, preanalyzed_eojeols,
+            max_word_len, parameter_marker, unknown_penalty)
 
         self._separate_features()
 

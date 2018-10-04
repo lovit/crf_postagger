@@ -42,7 +42,7 @@ def beam_search(begin_index, k, chars, params, score_functions,
 
             if not appending_eojeols:
                 sub = chars[b:e]
-                appending_eojeols = [Eojeol(sub+'/'+unk, sub, sub, unk, unk, b, e, unknown_penalty, 0)]
+                appending_eojeols = [Eojeol(sub+'/'+unk, sub, sub, unk, unk, b, e, unknown_penalty, 0, 1)]
 
             # appending
             matures = appending(immatures, appending_eojeols, matures)
@@ -51,7 +51,7 @@ def beam_search(begin_index, k, chars, params, score_functions,
         beam.append(matures)
 
     # for eos scoring
-    EOS = Eojeol('', eos, '', eos, '', len_sent, len_sent, 0, 0)
+    EOS = Eojeol('', eos, '', eos, '', len_sent, len_sent, 0, 0, 0)
     matures = appending(beam[-1], [EOS], [])
     beam.append(matures)
 
@@ -61,8 +61,8 @@ def _preference_penalty(immature, eojeol, params, a_syllable_penalty,
     noun_preference, longer_noun_preference):
 
     len_eojeol = eojeol.end - eojeol.begin
-    score = (a_syllable_penalty * (1 + noun_preference * (eojeol.first_tag == 'Noun')))  if len_eojeol == 1 else 0
-    score += noun_preference if (eojeol.first_tag == 'Noun' and len_eojeol > 1) else 0
+    score = (a_syllable_penalty * (1 + noun_preference * (eojeol.first_tag == 'Noun'))) if len_eojeol == 1 else 0
+    score += noun_preference if (eojeol.first_tag == 'Noun' and len_eojeol > 1 and not eojeol.unknown) else 0
     score += longer_noun_preference * (len_eojeol - 1) if eojeol.first_tag == 'Noun' else 0
     return score
 
@@ -76,15 +76,17 @@ def _trigram_score(immature, eojeol, params, **kargs):
     score += params.transitions.get((eojeol_prev.last_tag, eojeol.first_tag), 0)
 
     # previous features
-    score += params.previous_1X0.get(eojeol.first_tag, {}).get((eojeol_prev.last_word, eojeol.first_word), 0)
-    score += params.previous_X0_1Y.get(eojeol.first_tag, {}).get((eojeol.first_word, eojeol_prev.last_tag), 0)
+    if not eojeol.unknown:
+        score += params.previous_1X0.get(eojeol.first_tag, {}).get((eojeol_prev.last_word, eojeol.first_word), 0)
+        score += params.previous_X0_1Y.get(eojeol.first_tag, {}).get((eojeol.first_word, eojeol_prev.last_tag), 0)
 
     # successive features (for previous pos)
-    score += params.successive_X01.get(eojeol_prev.last_tag, {}).get((eojeol_prev.last_word, eojeol.first_word), 0)
-    score += params.successive_X01_Y1.get(eojeol_prev.last_tag, {}).get((eojeol_prev.last_word, eojeol.first_word, eojeol.first_tag), 0)
+    if not eojeol.unknown:
+        score += params.successive_X01.get(eojeol_prev.last_tag, {}).get((eojeol_prev.last_word, eojeol.first_word), 0)
+        score += params.successive_X01_Y1.get(eojeol_prev.last_tag, {}).get((eojeol_prev.last_word, eojeol.first_word, eojeol.first_tag), 0)
 
     # bothside features (for previous pos)
-    if len(immature.eojeols) >= 2:
+    if len(immature.eojeols) >= 2 and not eojeol.unknown:
         eojeol_prev2 = immature.eojeols[-2]
         score += params.bothside_1X1.get(eojeol_prev.first_tag, {}).get((eojeol_prev2.last_word, eojeol.first_word), 0)
         score += params.bothside_1X01.get(eojeol_prev.first_tag, {}).get((eojeol_prev2.last_word, eojeol_prev.first_word, eojeol.first_word), 0)

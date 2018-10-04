@@ -33,8 +33,8 @@ class AbstractParameter:
     def __call__(self, sentence):
         return self.generate(sentence)
 
-    def generate(self, sentence):
-        return self._sentence_lookup(sentence)
+    def generate(self, sentence, guess_tag=False):
+        return self._sentence_lookup(sentence, guess_tag)
 
     def _check_max_word_len(self):
         if not self.pos2words:
@@ -42,11 +42,11 @@ class AbstractParameter:
         self.max_word_len = max(
             max(len(word) for word in words) for words in self.pos2words.values())
 
-    def _sentence_lookup(self, sentence):
+    def _sentence_lookup(self, sentence, guess_tag=False):
         sentence = doublespace_pattern.sub(' ', sentence)
         sent = []
         for eojeol in sentence.split():
-            sent += self._word_lookup(eojeol, offset=len(sent))
+            sent += self._word_lookup(eojeol, len(sent), guess_tag)
         return sent
 
     def _word_lookup(self, eojeol, offset=0, guess_tag=False):
