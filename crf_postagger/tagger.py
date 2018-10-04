@@ -5,24 +5,17 @@ from .utils import _to_end_index
 from ._hmm_style import _hmm_style_tagger_weight
 from ._hmm_style import ford_list
 
-class HMMStyleTagger:
+class AbstractTagger:
 
     def __init__(self, parameters,
         feature_transformer=None, verbose=False):
 
-        if feature_transformer is None:
-            feature_transformer = BaseFeatureTransformer()
-        if parameters is None:
-            parameters = HMMStyleParameter()
         if verbose:
             print('use {}'.format(feature_transformer.__class__))
 
         self.parameters = parameters
         self.feature_transformer = feature_transformer
         self.verbose = verbose
-
-        self._a_syllable_penalty = -0.7
-        self._noun_preference = 0.05
 
     def evaluate(self, wordpos_sentence, debug=False):
 
@@ -48,6 +41,23 @@ class HMMStyleTagger:
                 score += coef
 
         return score
+
+    def tag(self, sentence, flatten=True, debug=False):
+        raise NotImplemented
+
+class HMMStyleTagger(AbstractTagger):
+    def __init__(self, parameters,
+        feature_transformer=None, verbose=False):
+
+        if feature_transformer is None:
+            feature_transformer = BaseFeatureTransformer()
+        if parameters is None:
+            parameters = HMMStyleParameter()
+
+        self._a_syllable_penalty = -0.7
+        self._noun_preference = 0.05
+
+        super().__init__(parameters, feature_transformer, verbose)
 
     def tag(self, sentence, flatten=True, debug=False):
         # generate nodes and edges
@@ -87,7 +97,7 @@ class HMMStyleTagger:
 
 ########################################
 
-class TrigramTagger(HMMStyleTagger):
+class TrigramTagger(AbstractTagger):
 
     def __init__(self, parameters,
         feature_transformer=None, verbose=False):
@@ -96,16 +106,12 @@ class TrigramTagger(HMMStyleTagger):
             feature_transformer = TrigramFeatureTransformer()
         if parameters is None:
             parameters = TrigramFeatureTransformer()
-        if verbose:
-            print('use {}'.format(feature_transformer.__class__))
-
-        self.parameters = parameters
-        self.feature_transformer = feature_transformer
-        self.verbose = verbose
 
         self._a_syllable_penalty = -0.3
         self._noun_preference = 0.5
         self._longer_noun_preference = 0.2
+
+        super().__init__(parameters, feature_transformer, verbose)
 
     def tag(self, sentence, flatten=True, beam_size=5):
         # generate nodes and edges
