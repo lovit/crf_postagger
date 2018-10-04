@@ -24,8 +24,10 @@ def beam_search(begin_index, k, chars, params,
         for immature in immatures:
             for eojeol in appending_words:
                 eojeols = (*immature.eojeols, eojeol)
-                score = _trigram_beam_search_cumulate_score(
-                    immature, eojeol, params, a_syllable_penalty,
+                score = immature.score
+                score += _trigram_score(
+                    immature, eojeol, params)
+                score += _preference_penalty(eojeol, a_syllable_penalty,
                     noun_preference, longer_noun_preference)
                 matures.append(Eojeols(eojeols, score))
         return matures
@@ -57,18 +59,20 @@ def beam_search(begin_index, k, chars, params,
 
     return beam[-1]
 
-def _trigram_beam_search_cumulate_score(immature, eojeol, params, a_syllable_penalty,
+def _preference_penalty(eojeol, a_syllable_penalty,
     noun_preference, longer_noun_preference):
 
-    eojeol_prev = immature.eojeols[-1]
     len_eojeol = eojeol.end - eojeol.begin
-
-    score = immature.score + eojeol.eojeol_score
-
-    # preference & penalty
-    score += (a_syllable_penalty * (1 + noun_preference * (eojeol.first_tag == 'Noun')))  if len_eojeol == 1 else 0
+    score = (a_syllable_penalty * (1 + noun_preference * (eojeol.first_tag == 'Noun')))  if len_eojeol == 1 else 0
     score += noun_preference if (eojeol.first_tag == 'Noun' and len_eojeol > 1) else 0
     score += longer_noun_preference * (len_eojeol - 1) if eojeol.first_tag == 'Noun' else 0
+    return score
+
+def _trigram_score(immature, eojeol, params):
+
+    eojeol_prev = immature.eojeols[-1]
+    # eojeol score, x[0]
+    score = eojeol.eojeol_score
 
     # transition score
     score += params.transitions.get((eojeol_prev.last_tag, eojeol.first_tag), 0)
