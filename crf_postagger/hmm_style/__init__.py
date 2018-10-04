@@ -1,3 +1,3 @@
 from ._path import ford_list
-from ._tagger import HMMStyleParameter
-from ._tagger import HMMStyleTagger
+from ._hmm_style import HMMStyleParameter
+from ._hmm_style import HMMStyleTagger
