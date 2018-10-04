@@ -13,8 +13,7 @@ class Beam:
         candidates = sorted(candidates, key=lambda x:-x.score)[:self.k]
         self.beam += [candidates]
 
-def beam_search(begin_index, k, chars, params,
-    a_syllable_penalty, noun_preference, longer_noun_preference):
+def beam_search(begin_index, k, chars, params, score_functions, **kwargs):
 
     len_sent = len(chars)
     max_len = params.max_word_len
@@ -25,10 +24,8 @@ def beam_search(begin_index, k, chars, params,
             for eojeol in appending_words:
                 eojeols = (*immature.eojeols, eojeol)
                 score = immature.score
-                score += _trigram_score(
-                    immature, eojeol, params)
-                score += _preference_penalty(eojeol, a_syllable_penalty,
-                    noun_preference, longer_noun_preference)
+                for func in score_functions:
+                    score += func(immature, eojeol, params, **kwargs)
                 matures.append(Eojeols(eojeols, score))
         return matures
 
@@ -59,7 +56,7 @@ def beam_search(begin_index, k, chars, params,
 
     return beam[-1]
 
-def _preference_penalty(eojeol, a_syllable_penalty,
+def _preference_penalty(immature, eojeol, params, a_syllable_penalty,
     noun_preference, longer_noun_preference):
 
     len_eojeol = eojeol.end - eojeol.begin
@@ -68,7 +65,7 @@ def _preference_penalty(eojeol, a_syllable_penalty,
     score += longer_noun_preference * (len_eojeol - 1) if eojeol.first_tag == 'Noun' else 0
     return score
 
-def _trigram_score(immature, eojeol, params):
+def _trigram_score(immature, eojeol, params, **kargs):
 
     eojeol_prev = immature.eojeols[-1]
     # eojeol score, x[0]
