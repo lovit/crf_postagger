@@ -1,7 +1,6 @@
 from .common import bos, eos, unk, Eojeol, BOS, Eojeols
 from .lemmatizer import lemma_candidate
 from .params import AbstractParameter
-from .params import TrigramParameter
 from .tagger import AbstractTagger
 from .trainer import Trainer
 from .transformer import BaseFeatureTransformer
