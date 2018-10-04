@@ -55,6 +55,6 @@ class AbstractTagger:
         poses = []
         for eojeol in eojeols.eojeols[1:-1]:
             poses.append((eojeol.first_word, eojeol.first_tag))
-            if eojeol.is_compound:
+            if eojeol.compound:
                 poses.append((eojeol.last_word, eojeol.last_tag))
         return poses

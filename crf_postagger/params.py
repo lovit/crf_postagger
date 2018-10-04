@@ -10,10 +10,11 @@ doublespace_pattern = re.compile(u'\s+', re.UNICODE)
 
 class AbstractParameter:
     def __init__(self, model_path=None, pos2words=None, preanalyzed_eojeols=None,
-        max_word_len=0, parameter_marker=' -> '):
+        max_word_len=0, parameter_marker=' -> ', unknown_penalty=-0.01):
 
         self.pos2words = pos2words
         self.max_word_len = max_word_len
+        self.unknown_penalty = unknown_penalty
 
         if model_path:
             self._load_from_json(model_path, parameter_marker)
@@ -48,7 +49,7 @@ class AbstractParameter:
             sent += self._word_lookup(eojeol, offset=len(sent))
         return sent
 
-    def _word_lookup(self, eojeol, offset=0):
+    def _word_lookup(self, eojeol, offset=0, guess_tag=False):
         n = len(eojeol)
         pos = [[] for _ in range(n)]
         for b in range(n):
@@ -57,16 +58,36 @@ class AbstractParameter:
                 if e > n:
                     continue
                 sub = eojeol[b:e]
-                # Eojeol(pos, first_word, last_word, first_tag, last_tag, begin, end, eojeol_score, is_compound)
-                for tag, score in self._get_tag_score(sub):
-                    pos[b].append(Eojeol(sub+'/'+tag, sub, sub, tag, tag, b+offset, e+offset, score, 0))
+
+                # Eojeol(pos, first_word, last_word, first_tag, last_tag, begin, end, eojeol_score, compound, unknown)
+                tag_scores = self._get_tag_score(sub)
+
+                # when substring is known word
+                if tag_scores:
+                    for tag, score in tag_scores:
+                        pos[b].append(Eojeol(sub+'/'+tag, sub, sub, tag, tag, b+offset, e+offset, score, 0, 0))
+                # when substring is unknown substring
+                elif guess_tag:
+                    for tag, score in self._guess_tag(sub, b, e, eojeol):
+                        pos[b].append(Eojeol(sub+'/'+tag, sub, sub, tag, tag, b+offset, e+offset, score, 0, 1))
+
+                # check whether substring is predicator
                 for word_form_lemma in self._add_lemmas(sub, b, e, offset):
                     pos[b].append(word_form_lemma)
+
         return pos
 
     def _get_tag_score(self, word):
         # return (word, word score)
         return tuple((tag, words[word]) for tag, words in self.pos2words.items() if word in words)
+
+    def _guess_tag(self, sub, b, e, eojeol):
+        return [
+            ('Noun', self.unknown_penalty),
+            ('Adverb', self.unknown_penalty),
+            ('Exclamation', self.unknown_penalty),
+            (unk, self.unknown_penalty)
+        ]
 
     def _add_lemmas(self, sub, b, e, offset):
 
@@ -77,7 +98,7 @@ class AbstractParameter:
             eojeol = Eojeol(
                 '%s/%s + %s/%s' %  (l_morph, l_tag, r_morph, r_tag),
                 l_morph, r_morph, l_tag, r_tag, b + offset, e + offset,
-                get_score(l_morph, l_tag) + get_score(r_morph, r_tag), 1
+                get_score(l_morph, l_tag) + get_score(r_morph, r_tag), 1, 0
             )
             return eojeol
 

@@ -78,10 +78,10 @@ class HMMStyleFeatureTransformer(AbstractFeatureTransformer):
 
 class HMMStyleParameter(AbstractParameter):
     def __init__(self, model_path=None, pos2words=None, preanalyzed_eojeols=None,
-        max_word_len=0, parameter_marker=' -> '):
+        max_word_len=0, parameter_marker=' -> ', unknown_penalty=-0.01):
 
         super().__init__(model_path, pos2words,
-            preanalyzed_eojeols, max_word_len, parameter_marker)
+            preanalyzed_eojeols, max_word_len, parameter_marker, unknown_penalty)
 
     def generate(self, sentence):
         # prepare lookup list
@@ -90,15 +90,15 @@ class HMMStyleParameter(AbstractParameter):
         n_char = len(sent) + 1
 
         # add end node
-        eos_node = Eojeol(eos, eos, None, eos, None, n_char-1, n_char, 0, 0)
+        eos_node = Eojeol(eos, eos, None, eos, None, n_char-1, n_char, 0, 0, 0)
         sent.append([eos_node])
 
         # check first word position
         nonempty_first = self._get_nonempty_first(sent, n_char)
         if nonempty_first > 0:
-            # (pos, first_word, last_word, first_tag, last_tag, begin, end, eojeol_score, is_compound)
+            # (pos, first_word, last_word, first_tag, last_tag, begin, end, eojeol_score, compound, unknown)
             word = chars[:nonempty_first]
-            sent[0] = [Eojeol(word, word, word, unk, unk, 0, nonempty_first, 0, 0)]
+            sent[0] = [Eojeol(word, word, word, unk, unk, 0, nonempty_first, 0, unknown_penalty, 1)]
 
         # add link between adjacent nodes
         edges = self._link_adjacent_nodes(sent, chars, n_char)
@@ -106,7 +106,7 @@ class HMMStyleParameter(AbstractParameter):
         # add link from unk node
         edges = self._link_from_unk_nodes(edges, sent)
 
-        bos_node = Eojeol(bos, None, bos, None, bos, 0, 0, 0, 0)
+        bos_node = Eojeol(bos, None, bos, None, bos, 0, 0, 0, 0, 0)
         for word in sent[0]:
             edges.append((bos_node, word))
         edges = sorted(edges, key=lambda x:(x[0].begin, x[1].end))
@@ -126,7 +126,7 @@ class HMMStyleParameter(AbstractParameter):
                 if not sent[word.end]:
                     unk_end = self._get_nonempty_first(sent, n_char, word.end)
                     unk_word = chars[word.end:unk_end]
-                    unk_node = Eojeol(unk_word, unk_word, unk_word, unk, unk, word.end, unk_end, 0)
+                    unk_node = Eojeol(unk_word, unk_word, unk_word, unk, unk, word.end, unk_end, 0, 1)
                     edges.append((word, unk_node))
                 for adjacent in sent[word.end]:
                     edges.append((word, adjacent))
