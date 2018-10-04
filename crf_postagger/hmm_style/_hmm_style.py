@@ -1,5 +1,6 @@
 from .. import AbstractTagger
 from .. import AbstractParameter
+from .. import AbstractFeatureTransformer
 from .. import BaseFeatureTransformer
 from .. import bos, eos, unk, Eojeol, Eojeols
 from ._path import ford_list
@@ -64,6 +65,16 @@ def _hmm_style_tagger_weight(edges, parameters, _a_syllable_penalty, _noun_prefe
         #    score += get_transition(to_.first_tag, to_.last_tag)
         return score
     return [(from_, to_, get_score(from_, to_)) for from_, to_ in edges]
+
+class HMMStyleFeatureTransformer(AbstractFeatureTransformer):
+    def __init__(self):
+        super().__init__()
+
+    def to_feature(self, words_, tags_, i):
+        features = [
+            'x[0]=%s' % words_[i],
+        ]
+        return features
 
 class HMMStyleParameter(AbstractParameter):
     def __init__(self, model_path=None, pos2words=None, preanalyzed_eojeols=None,
