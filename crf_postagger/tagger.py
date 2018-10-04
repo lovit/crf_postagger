@@ -45,6 +45,24 @@ class AbstractTagger:
     def tag(self, sentence, flatten=True, debug=False):
         raise NotImplemented
 
+    def add_user_dictionary(self, tag, word_score):
+        if not (tag in self.parameters.pos2words):
+            raise ValueError('{} tag does not exist in model'.format(tag))
+        for word, score in word_score.items():
+            self.parameters.pos2words[tag][word] = score
+
+    def _remain_details(self, eojeols):
+        return [(eojeol.pos, eojeol.begin, eojeol.end, eojeol.eojeol_score)
+                for eojeol in eojeols.eojeols[1:-1]]
+
+    def _remain_only_pos(self, eojeols):
+        poses = []
+        for eojeol in eojeols.eojeols[1:-1]:
+            poses.append((eojeol.first_word, eojeol.first_tag))
+            if eojeol.is_compound:
+                poses.append((eojeol.last_word, eojeol.last_tag))
+        return poses
+
 class HMMStyleTagger(AbstractTagger):
     def __init__(self, parameters,
         feature_transformer=None, verbose=False):
@@ -83,17 +101,11 @@ class HMMStyleTagger(AbstractTagger):
 
         # post-processing
         if flatten:
-            poses = _remain_only_pos(eojeols)
+            poses = self._remain_only_pos(eojeols)
         else:
-            poses = _remain_details(eojeols)
+            poses = self._remain_details(eojeols)
 
         return [poses, cost]
-
-    def add_user_dictionary(self, tag, word_score):
-        if not (tag in self.parameters.pos2words):
-            raise ValueError('{} tag does not exist in model'.format(tag))
-        for word, score in word_score.items():
-            self.parameters.pos2words[tag][word] = score
 
 ########################################
 
@@ -127,21 +139,12 @@ class TrigramTagger(AbstractTagger):
 
         # post-processing
         def postprocessing(eojeols, flatten):
-            return _remain_only_pos(eojeols) if flatten else _remain_details(eojeols)
+            if flatten:
+                return self._remain_only_pos(eojeols)
+            else:
+                self._remain_details(eojeols)
 
-        top_poses = [(postprocessing(eojeols, flatten), eojeols.score) for eojeols in top_eojeols]
+        top_poses = [(postprocessing(eojeols, flatten), eojeols.score)
+                     for eojeols in top_eojeols]
 
         return top_poses
-
-########################################
-# common functions
-def _remain_details(eojeols):
-    return [(eojeol.pos, eojeol.begin, eojeol.end, eojeol.eojeol_score) for eojeol in eojeols.eojeols[1:-1]]
-
-def _remain_only_pos(eojeols):
-    poses = []
-    for eojeol in eojeols.eojeols[1:-1]:
-        poses.append((eojeol.first_word, eojeol.first_tag))
-        if eojeol.is_compound:
-            poses.append((eojeol.last_word, eojeol.last_tag))
-    return poses
