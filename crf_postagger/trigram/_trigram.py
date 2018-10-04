@@ -26,7 +26,6 @@ class TrigramTagger(AbstractTagger):
             _trigram_score
         ]
         super().__init__(parameters, feature_transformer, verbose)
-        self._unknown_penalty = self.parameters.unknown_penalty
 
     def tag(self, sentence, flatten=True, guess_tag=False, beam_size=5):
         # generate nodes and edges
@@ -36,7 +35,7 @@ class TrigramTagger(AbstractTagger):
         chars = sentence.replace(' ', '')
         top_eojeols = beam_search(
             begin_index, beam_size, chars, self.parameters,
-            self._beam_score_functions, self._unknown_penalty,
+            self._beam_score_functions, self.parameters.unknown_penalty,
             a_syllable_penalty = self._a_syllable_penalty,
             noun_preference = self._noun_preference,
             longer_noun_preference = self._longer_noun_preference

@@ -10,7 +10,7 @@ doublespace_pattern = re.compile(u'\s+', re.UNICODE)
 
 class AbstractParameter:
     def __init__(self, model_path=None, pos2words=None, preanalyzed_eojeols=None,
-        max_word_len=0, parameter_marker=' -> ', unknown_penalty=-0.01):
+        max_word_len=0, parameter_marker=' -> ', unknown_penalty=-0.1):
 
         self.pos2words = pos2words
         self.max_word_len = max_word_len

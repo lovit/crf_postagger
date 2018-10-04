@@ -78,7 +78,7 @@ class HMMStyleFeatureTransformer(AbstractFeatureTransformer):
 
 class HMMStyleParameter(AbstractParameter):
     def __init__(self, model_path=None, pos2words=None, preanalyzed_eojeols=None,
-        max_word_len=0, parameter_marker=' -> ', unknown_penalty=-0.01):
+        max_word_len=0, parameter_marker=' -> ', unknown_penalty=-0.1):
 
         super().__init__(model_path, pos2words,
             preanalyzed_eojeols, max_word_len, parameter_marker, unknown_penalty)
