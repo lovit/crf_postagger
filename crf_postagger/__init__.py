@@ -3,7 +3,6 @@ from .lemmatizer import lemma_candidate
 from .params import AbstractParameter
 from .params import TrigramParameter
 from .tagger import AbstractTagger
-from .tagger import TrigramTagger
 from .trainer import Trainer
 from .transformer import BaseFeatureTransformer
 from .transformer import TrigramFeatureTransformer
@@ -13,3 +12,4 @@ from .utils import check_dirs
 from .utils import get_process_memory
 
 from . import hmm_style
+from . import trigram

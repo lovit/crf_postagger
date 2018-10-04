@@ -1,4 +1,4 @@
-from .common import bos, eos, unk, BOS, Eojeol, Eojeols
+from .. import bos, eos, unk, BOS, Eojeol, Eojeols
 
 class Beam:
     def __init__(self, k):
