@@ -16,8 +16,8 @@
 
 Parameter 와 Tagger 는 반드시 짝을 맞춰서 입력해야 합니다. 이 부분은 이후에 통합될 예정입니다. 용언에 대한 기분석 어절의 결과를 입력할 수 있습니다. { '어절':((어간, 어미, 어간 품사, 어미 품사), ) } 형식으로 입력합니다.
 
-    from crf_postagger import TrigramTagger
-    from crf_postagger import TrigramParameter
+    from crf_postagger.trigram import TrigramTagger
+    from crf_postagger.trigram import TrigramParameter
 
     model_path = '../models/trigram_crf_sejong_simple.json'
     preanalyzed_eojeols = {
@@ -160,8 +160,8 @@ flatten=False 로 설정하면 형태소의 위치와 단어 점수가 함께 �
 
 용언에 대하여 기분석 어절을 이용할 수 있습니다. Tagger 는 학습된 모델인 Parameter 를 입력해야 합니다. 이는 이후에 통합될 예정입니다.
 
-    from crf_postagger import HMMStyleTagger
-    from crf_postagger import HMMStyleParameter
+    from crf_postagger.hmm_style import HMMStyleTagger
+    from crf_postagger.hmm_style import HMMStyleParameter
 
     model_path = '../models/hmmstyle_crf_sejong_simple.json'
     preanalyzed_lemmas = {
@@ -230,8 +230,8 @@ Corpus 는 nested list 형식의 문장을 yield 하는 class 입니다. 학습�
 
 CRF 의 potential function 은 FeatureTransformer class 입니다. 이 classes 은 call 함수가 구현되어 있습니다. (단어, 품사) 로 이뤄진 list 형식의 문장을 입력 받으면, 각 시점의 features 와 tags list 를 return 합니다.
 
-    from crf_postagger import HMMStyleFeatureTransformer
-    from crf_postagger import TrigramFeatureTransformer
+    from crf_postagger.hmm_style import HMMStyleFeatureTransformer
+    from crf_postagger.trigram import TrigramFeatureTransformer
 
 
     # sentence_to_xy = HMMStyleFeatureTransformer()
