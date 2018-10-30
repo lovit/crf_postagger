@@ -18,7 +18,7 @@ def main():
                         choices=['base', 'hmm_style', 'trigram']
                        )
     parser.add_argument('--max_iter', type=int, default=100, help='the number of maximal iteration of CRF')
-    parser.add_argument('--model_path', type=str, default='../trigram_sejong_lr_sepxsv.json', help='trained model path')
+    parser.add_argument('--model_path', type=str, default='../models/trigram_sejong_lr_sepxsv.json', help='trained model path')
     parser.add_argument('--verbose', dest='verbose', action='store_true')
 
     args = parser.parse_args()
@@ -37,13 +37,15 @@ def main():
         sentence_to_xy = BaseFeatureTransformer()
 
     trainer = Trainer(
-        Corpus(corpus_path, num_sent=corpus_length),
         sentence_to_xy = sentence_to_xy,
         max_iter = max_iter,
         l1_cost = 0,
         verbose = verbose
     )
-    trainer._save_as_json(model_path)
+    trainer.train(
+        Corpus(corpus_path, num_sent=corpus_length),
+        model_path
+    )
 
 if __name__ == '__main__':
     main()
