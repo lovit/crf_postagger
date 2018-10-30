@@ -24,8 +24,10 @@ class Corpus:
             for i, sent in enumerate(f):
                 if self.num_sent > 0 and i > self.num_sent:
                     break
-                wordpos = [token.rsplit('/', 1) for token in sent.split()]
-                yield wordpos
+                morphtags = [token.rsplit('/', 1) for token in sent.split()]
+                morphtags = [token for token in morphtags if len(token) == 2]
+                if morphtags:
+                    yield morphtags
 
 def _to_end_index(begin_index):
     end_index = [[] for _ in range(len(begin_index) + 1)]
