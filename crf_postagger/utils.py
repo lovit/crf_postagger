@@ -22,10 +22,10 @@ class Corpus:
     def __iter__(self):
         with open(self.path, encoding='utf-8') as f:
             for i, sent in enumerate(f):
-                if self.num_sent > 0 and i > self.num_sent:
+                if self.num_sent > 0 and i >= self.num_sent:
                     break
                 morphtags = [token.rsplit('/', 1) for token in sent.split()]
-                morphtags = [token for token in morphtags if len(token) == 2]
+                morphtags = [token for token in morphtags if len(token) == 2 and token[0] and token[1]]
                 if morphtags:
                     yield morphtags
 
