@@ -95,13 +95,17 @@ class Trainer:
                 self._features, key=lambda x:self._features[x].idx)
         ]
 
-        self._train_pycrfsuite(sentences)
-        self._parse_coefficients()
+        if (model_path is None) or (not model_path):
+            model_path_ = '_pycrfsuite_model'
+        else:
+            model_path_ = '_' + model_path
+        self._train_pycrfsuite(sentences, model_path_)
+        self._parse_coefficients(model_path_)
 
         if model_path:
             self._save_as_json(model_path)
 
-    def _train_pycrfsuite(self, sentences, model_path='_pycrfsuite_model'):
+    def _train_pycrfsuite(self, sentences, model_path):
 
         def print_status(i):
             info = 'from {} sents, mem = {:f} Gb'.format(
@@ -139,7 +143,7 @@ class Trainer:
         trainer.set_params(params)
         trainer.train(model_path)
 
-    def _parse_coefficients(self, model_path='_pycrfsuite_model'):
+    def _parse_coefficients(self, model_path):
 
         if self.verbose:
             print('[CRF tagger] parse trained coefficients', end='')
