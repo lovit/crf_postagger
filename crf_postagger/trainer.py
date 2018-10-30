@@ -4,6 +4,7 @@ except:
     print('Failed to import python-crfsuite')
 
 import json
+import os
 from collections import namedtuple
 from .transformer import BaseFeatureTransformer
 from .utils import get_process_memory
@@ -12,7 +13,7 @@ from .utils import check_dirs
 Feature = namedtuple('Feature', 'idx count')
 
 class Trainer:
-    def __init__(self, corpus=None, sentence_to_xy=None, min_count=3,
+    def __init__(self, sentence_to_xy=None, min_count=3,
         l2_cost=1.0, l1_cost=1.0, scan_batch_size=200000,
         max_iter=300, verbose=True):
 
@@ -29,9 +30,6 @@ class Trainer:
         self.scan_batch_size = scan_batch_size
         self.max_iter = max_iter
         self.verbose = verbose
-
-        if corpus is not None:
-            self.train(corpus)
 
     def scan_features(self, sentences, sentence_to_xy,
         min_count=2, scan_batch_size=1000000):
@@ -95,11 +93,19 @@ class Trainer:
                 self._features, key=lambda x:self._features[x].idx)
         ]
 
+        # temporal file
         if (model_path is None) or (not model_path):
             model_path_ = '_pycrfsuite_model'
         else:
-            model_path_ = '_' + model_path
+            abspath = os.path.abspath(model_path)
+            dirname = os.path.dirname(abspath)
+            basename = os.path.basename(abspath).rsplit('.', 1)[0]
+            model_path_ = '{}/_{}'.format(dirname, basename)
+
+        # train model using python-crfsuite
         self._train_pycrfsuite(sentences, model_path_)
+
+        # summary
         self._parse_coefficients(model_path_)
 
         if model_path:
